@@ -1,0 +1,1 @@
+=IF(F2=0,"Filler",IF(F2=1,"Accessories",IF(F2=2,"Appliances",IF(F2=3,"BodyParts",IF(F2=4,"Buildings",IF(F2=5,"Clothes",IF(F2=6,"FarmAnimals",IF(F2=7,"Fruit",IF(F2=8,"Furniture",IF(F2=9,"MarineAnimals",IF(F2=10,"Music",IF(F2=11,"Safari",IF(F2=12,"Tableware",IF(F2=13,"Tools",IF(F2=14,"toys",IF(F2=15,"Transport",IF(F2=16,"Vegetables")))))))))))))))))
