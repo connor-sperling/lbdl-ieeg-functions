@@ -4,8 +4,8 @@ function events_by_condition(EEG, id_name, idents, pth, study, sep_an, cmat)
     evn_idc = [EEG.analysis.latency]';
     rtm = [EEG.analysis.resp]';
               
-    adat_pth = sprintf('%s/ALL/data/%s', pth, EEG.band{end});
-    fdat_pth = sprintf('%s/condition/data/%s', pth, EEG.band{end});
+    adat_pth = sprintf('%s/ALL/data/%s', pth, EEG.band);
+    fdat_pth = sprintf('%s/condition/data/%s', pth, EEG.band);
     
     % Two methodologies: Group all events together ('ALL') and find channels
     % exhibiting significant activity, or separate events based on some

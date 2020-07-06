@@ -41,6 +41,7 @@ function channel_by_event(EEG, evn, evni, rtm, pth, foc_nm)
     pt_nm = pt_id{1};
 
     for kk = 1:size(dat,1)        
+        datU = abs(hilbert(dat(kk,:)));
         % isolate 'band' frequencies and recover the envelope of the signal
         if strcmp(band, 'HFB') 
             dat_bp = bandpass(dat(kk,:), [70, 150], fs); % Filtered data
@@ -50,10 +51,11 @@ function channel_by_event(EEG, evn, evni, rtm, pth, foc_nm)
 %             [b,a] = butter(4, [0.1 30]/(fs/2), 'bandpass');
             datT = abs(hilbert(filtfilt(b,a,dat(kk,:)))); % Envelope of LFP signal
         else
-            datT = abs(hilbert(dat(kk,:))); % Envelope of entire signal
+            datT = datU; % Envelope of entire signal
         end
         
         chnl_evnt = zeros(length(lidc), round(tot_t/1000 *fs)+1); 
+        chnl_evnt_raw = chnl_evnt; 
         bl_dat = zeros(length(lidc), round(bl_t/1000 *fs)+1);
         
         % Each iteratoon saves the data in the channel around the next
@@ -62,10 +64,11 @@ function channel_by_event(EEG, evn, evni, rtm, pth, foc_nm)
         % "percentage rise from baseline" through this process.
         for jj = 1:length(lidc)
             chnl_evnt(jj,:) = (datT(an_st(jj):an_en(jj)) - mean(datT(bl_st(jj):bl_en(jj))))./mean(datT(bl_st(jj):bl_en(jj))) *100;
+            chnl_evnt_raw(jj,:) = datU(an_st(jj):an_en(jj));
             bl_dat(jj,:) = datT(bl_st(jj):bl_en(jj)) - mean(datT(bl_st(jj):bl_en(jj)));
         end     
         
-        save(sprintf('%s/%s_%s_%s_%s.mat', pth, foc_nm, pt_nm, labs{kk}, EEG.ref), 'chnl_evnt', 'bl_dat', 'evn');
+        save(sprintf('%s/%s_%s_%s_%s.mat', pth, foc_nm, pt_nm, labs{kk}, EEG.ref), 'chnl_evnt', 'chnl_evnt_raw', 'bl_dat', 'evn');
 
     end    
 end

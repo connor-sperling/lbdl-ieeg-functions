@@ -11,10 +11,10 @@ function plot_conditions(EEG, dat_files, ch_lab, study, cmat)
     subj = sid{1};      
     fs = EEG.srate;
     rtm = [EEG.event.resp]';
-    band = EEG.band{end};
+    band = EEG.band;
     
     ref = EEG.ref;
-    lock = EEG.lock{end};   
+    lock = EEG.lock;   
     
     ap_pth = sprintf('%s/plots/%s/%s', subjs_dir, study, lock);
 

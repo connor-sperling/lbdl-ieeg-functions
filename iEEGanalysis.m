@@ -24,9 +24,6 @@ else
     all_tasks = {'DA', 'DV'};
 end
 
-% txto = 0;
-% txtw = 0;
-
 cd(subjs_dir)
 
 % Grab all current subject directories
@@ -36,22 +33,9 @@ subjs = {subjs.name};
 % Select subjects
 all_subjs = prompt('pick subjs', subjs);
 all_subjs = strsplit(all_subjs);
-an_subjs = {};
 
 if strcmpi(all_subjs{1}, 'all')
-    all_subjs = subjs;
-%     txtw = 1;
-    
-% elseif strcmpi(all_subjs{1}, 'txt') 
-%     txto = 1;
-%     txtw = 1;
-%     
-%     if strcmpi(all_subjs{2}, 'all')   
-%         all_subjs = subjs;
-%         
-%     else
-%         all_subjs(1) = [];
-%     end  
+    all_subjs = subjs; 
 end
 
 % select study = <task>_<research name-subtype>
@@ -74,13 +58,6 @@ end
 % Choose which type of reference to analyze: monopolar, bipolar
 ref = prompt('reference');
 
-% if txtw
-%     if ~idepa
-%         typevn = prompt('ALL or condition');
-%     end
-%     winlen = input('\nSegment length?\n--> ');
-%    
-% end
 
 
 for subjcell = all_subjs
@@ -110,7 +87,6 @@ for subjcell = all_subjs
         if ~ismember(eeg_file, sdata)
             continue
         else
-%             an_subjs = [an_subjs; {subj}];
             load(eeg_file, 'EEG')
             raw_evn = {EEG.event.type}';
             rtm = [EEG.analysis.resp]';
@@ -139,8 +115,7 @@ for subjcell = all_subjs
                 conplt = sprintf('%s/condition/plots/%s', lock_pth, band);
                 contvd = sprintf('%s/condition/TvD/%s', lock_pth, band);
                 aplt = sprintf('%s/plots/%s/%s', subjs_dir, studan, lock);
-                
-                
+
                 % my_mkdir makes the directory if it does not exist and
                 % deletes the contents of a specific file type if it does
                 % exist. The latter is necessary so that data from a
@@ -154,7 +129,7 @@ for subjcell = all_subjs
 
                 prompt('processing info', subj, task, band, lock, size(EEG.data,1), length(evn), length(raw_evn))
 
-                
+
                 % Different anaylsis techniques for different tasks/studies
                 switch studan
 
@@ -203,42 +178,9 @@ for subjcell = all_subjs
                         channel_by_event(EEG, evn, evn_idc, rtm, alldat, 'ALL') 
                         TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
                 end
-            end
-                
-%                if txtw
-%                     tfile = sprintf('%s/txts/%s_average_%s_activity_by_%dms_segments.txt', subjs_dir, study, band, winlen);
-%                     if strcmp(subj, an_subjs{1}) && strcmp(lock,'Stimulus Locked')
-%                         delete(tfile)
-%                     end
-%                     
-%                     if idepa
-%                         tvdpth = contvd;
-%                         dat_pth = condat;
-%                     else
-%                         tvdpth = alltvd;
-%                         if strcmp(typevn, 'ALL')
-%                             dat_pth = alldat;
-%                         else
-%                             dat_pth = condat;
-%                         end
-%                     end
-%                     tvd_files = dir(sprintf('%s/*.mat', tvdpth));
-%                     tvd_files = {tvd_files.name};
-%                     TvDm = [];
-%                     for t = 1:length(tvd_files)
-%                         load(sprintf('%s/%s', tvdpth, tvd_files{t}))
-%                         TvDm = [TvDm; TvD];
-%                     end
-%                     txt4r(EEG, TvDm, winlen, dat_pth, subjs_dir, studan)
-%                 end
-%                 
-%                 
-           
-            
-        end
-        
-    end
-    
+            end       
+        end    
+    end  
 end
 
 
