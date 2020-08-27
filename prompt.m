@@ -330,7 +330,7 @@ function ipt = prompt(pmt, varargin)
             while true   
                 msg = sprintf('\nWould you like to study High Frequency Band (HFB) activity, Local Field Potential (LFP) activity, or both?\n--> ');
                 ipt = upper(input(msg, 's'));
-                if ~strcmpi(ipt, 'HFB') && ~strcmpi(ipt, 'LFP') && ~strcmpi(ipt, 'both') && ~strcmpi(ipt, 'none')
+                if ~strcmpi(ipt, 'HFB') && ~strcmpi(ipt, 'LFP') && ~strcmpi(ipt, 'both') && ~strcmpi(ipt, 'raw')
                     disp(' ')
                     disp('Enter HFB for High Frequency Band, LFP for Local Field Potential, both for both, or none for no filter.')
                 else

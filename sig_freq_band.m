@@ -17,6 +17,8 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
             an_st_tm = -750; % time analysis begins w.r.t response onset
             an_en_tm = 750; % time analysis ends w.r.t response onset
             en_tm = 750; % window end time w.r.t response onset
+            t_bl_st = -1250; % baseline start time w.r.t response onset
+            t_bl_en = -750;
             second_mrk = -mean(rtm); % average stimulus onset
             
         case 'stim'
@@ -24,24 +26,29 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
             an_st_tm = 0;
             an_en_tm = 1000;
             en_tm = 1600;
+            t_bl_st = -500;
+            t_bl_en = 0;
             second_mrk = mean(rtm); % average response onset
     end
 
     % Convert to samples
-    an_st = round(abs(an_st_tm-st_tm)*fs/1000);
+    an_st = round(abs(an_st_tm-st_tm)*fs/1000)+1;
     an_en = round(abs(an_en_tm-st_tm)*fs/1000);
     st_sam = round(st_tm/1000*fs);
     
+    bl_st = round(abs(t_bl_st-st_tm)*fs/1000)+1;
+    bl_en = round(abs(t_bl_en-st_tm)*fs/1000);
+    
     % Makes a matrix of analysis window indicies organized into rows of 100
     % ms chuncks
-    an_win = an_st+1:an_en;
+    an_win = an_st:an_en;
     chunk_len = round((100*fs)/1000);
-    nchnk = floor(size(an_win,2)/chunk_len);
+    nchnk = 2*round(size(an_win,2)/chunk_len)-1; % 50% overlap
     chunck_block = zeros(nchnk,chunk_len); 
     x = 1;
     for w = 1:nchnk
         chunck_block(w,:) = an_win(x):an_win(x+(chunk_len-1));
-        x = x + chunk_len;
+        x = x + floor(chunk_len/2); % 50% overlap
     end
     
     % for t-tests
@@ -60,9 +67,13 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
         
         C = load(sprintf('%s/%s_%s_%s_%s.mat', mat_pth, foc_nm, pt_nm, lab{ii}, EEG.ref), 'chnl_evnt', 'bl_dat');
         chnl_evnt = C.chnl_evnt;
-        bl_dat = C.bl_dat;
-        
+%         bl_dat = C.bl_dat;
+
+        bl_dat = chnl_evnt(:,bl_st:bl_en);
+%         bl_boot = bootstrp(200, @mean, bl_dat);
+%         bl_mean = mean(bl_boot, 2);
         bl_mean = mean(bl_dat, 2);
+        
         pvals = [];
         hvals = [];
         
@@ -70,22 +81,35 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
         for N = 1:nchnk
             winN = chunck_block(N, :);
 %             zmean_pop = zeros(size(chnl_evnt, 1), 1);
-            event_popm = mean(chnl_evnt(:,winN),2);
-            if strcmp(band, 'HFB')
-                ttype = 'left';
-            else
-%                 ttype = 'both';
-                ttype = 'left';
-            end
-            [h, p] = ttest2(bl_mean, event_popm, 'Alpha', q, 'Tail', ttype);
+            chunk_mean = mean(chnl_evnt(:,winN),2);
+%             chunk_boot = bootstrp(200, @mean, chnl_evnt(:,winN));
+%             chunk_mean = mean(chunk_boot,2);
+%             figure
+%             histogram(bl_mean1)
+%             hold on
+%             histogram(chunk_mean1)
+            ttype = 'right';
+            [h, p] = ttest2(chunk_mean, bl_mean, 'Alpha', q, 'Tail', ttype);
 
             pvals = [pvals p];
             hvals = [hvals h];
+            close
         end
         
         % fdr correct
         [pthr, ~, padj] = fdr2(pvals,q);
         hcorr = pvals < pthr;
+        
+        hcorr(hcorr==1) = 1:sum(hcorr);
+        hsec_msk = -diff(diff(hcorr))~=0;
+        hcorr([true hsec_msk true]) = false;
+        if hcorr(2) > 0
+            hcorr(1) = 1;
+        end
+        if hcorr(end-1) > 0
+            hcorr(end) = 1;
+        end
+        hcorr = hcorr > 0;
         
         % identify if electrode is significant 
         sig_idcs = [];
@@ -154,14 +178,16 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
         plot([st_tm     en_tm], [0 0], 'k');
         plot([an_st_tm  an_en_tm], [0 0], 'k', 'LineWidth',2);
  
-        
-        pidc = sort(chan_sidc(dat(chan_sidc) > 0));
-        prngs = [1; find(diff(pidc) > 1)+1; length(pidc)];
-        ptm = 1000*(pidc+st_sam)/fs;
-        for k = 1:length(prngs)-1
-            rzone = ptm(prngs(k)):ptm(prngs(k+1)-1);
-            plot(rzone, zeros(1,length(rzone)), 'r', 'linewidth', 2)
+        for k = 1:size(chan_sidc)
+            line([chan_sidc(k,1) chan_sidc(k,end)]+st_sam, [0 0], 'color', 'r', 'linewidth', 2)
         end
+%         pidc = sort(chan_sidc(dat(chan_sidc) > 0));
+%         prngs = [1; find(diff(pidc) > 1)+1; length(pidc)];
+%         ptm = 1000*(pidc+st_sam)/fs;
+%         for k = 1:length(prngs)-1
+%             rzone = ptm(prngs(k)):ptm(prngs(k+1)-1);
+%             plot(rzone, zeros(1,length(rzone)), 'r', 'linewidth', 2)
+%         end
 
         % Edit plot
         set(gcf, 'Units','pixels','Position',[100 100 800 600])
@@ -173,7 +199,7 @@ function TvD = sig_freq_band(EEG, rtm, pth, foc_nm)
         axis tight
         grid on
 
-        % Save
+%         Save
         saveas(gca ,sprintf('%s/%s_%s_%2.2f_%ims.png', plot_pth, foc_nm, sig_chans{ii}, q, 100))
         close
     end

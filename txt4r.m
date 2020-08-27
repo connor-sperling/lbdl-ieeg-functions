@@ -1,20 +1,20 @@
-function txt4r(EEG, TvD, win_ms, dpth, subjs_dir, study)
+function txt4r(EEG, TvD, win_ms, subjs_dir, dat_pth, study)
     
     stinf = strsplit(EEG.setname, '_');
     subj = stinf{1};
     task = stinf{2};
     ref = EEG.ref;
-    band = EEG.band{end};
-    lock = EEG.lock{end};
+    band = EEG.band;
+    lock = EEG.lock;
     fs = EEG.srate;
     
     switch lock
-        case 'Response Locked'
+        case 'resp'
             t_st = -1250;
             an_st_tm = -750;
             t_en = 750;
             
-        case 'Stimulus Locked'
+        case 'stim'
             t_st = -1000;
             an_st_tm = 0;
             t_en = 1000;
@@ -27,7 +27,7 @@ function txt4r(EEG, TvD, win_ms, dpth, subjs_dir, study)
         
     [win_ms, xdiv] = dividewindow(tot_t, win_ms, 100);
     
-    dfiles = dir(sprintf('%s/*.mat', dpth));
+    dfiles = dir(sprintf('%s/*.mat', dat_pth));
     dfiles = {dfiles.name};
     fnsplt = cellfun(@(x) strsplit(x,'_'), dfiles, 'UniformOutput', false);
     focids = unique(cellfun(@(x) x{1}, fnsplt, 'UniformOutput', false));
@@ -64,7 +64,7 @@ function txt4r(EEG, TvD, win_ms, dpth, subjs_dir, study)
     %     subregion = allregion(cellfun(@(x) strcmp(x, subj), allregion.subject),:);
 
 
-        patdata = readtable(sprintf('%s/%s/Data Files/%s_CV_%s.xlsx', subjs_dir, subj, subj, task));
+        patdata = readtable(sprintf('%s/%s/data/%s_CV_%s.xlsx', subjs_dir, subj, subj, task));
         header = patdata.Properties.VariableNames;
         formspec = '';
         for i = 1:length(header)
@@ -84,15 +84,15 @@ function txt4r(EEG, TvD, win_ms, dpth, subjs_dir, study)
     %             region = 'ud';
     %         end
 
-            load(sprintf('%s/%s_%s_%s_%s.mat', dpth, foc_nm, subj, lab, ref), 'chnl_evnt', 'evn');
+            load(sprintf('%s/%s_%s_%s_%s.mat', dat_pth, foc_nm, subj, lab, ref), 'chnl_evnt', 'evn');
             
             evn_splt = cellfun(@(x) strsplit(x,'-'), evn, 'UniformOutput', false);
             evn_msk = cellfun(@(x) str2double(x{1}), evn_splt);
             
             patdata_trim = patdata(evn_msk, :);
             
-            writetable(patdata_trim, sprintf('%s/%s/Data Files/%s_CV_%s.txt', subjs_dir, subj, subj, task), 'Delimiter', 'tab')
-            fid = fopen(sprintf('%s/%s/Data Files/%s_CV_%s.txt', subjs_dir, subj, subj, task));
+            writetable(patdata_trim, sprintf('%s/%s/data/%s_CV_%s.txt', subjs_dir, subj, subj, task), 'Delimiter', 'tab')
+            fid = fopen(sprintf('%s/%s/data/%s_CV_%s.txt', subjs_dir, subj, subj, task));
             
             pred = textscan(fid,formspec);
             fclose(fid);

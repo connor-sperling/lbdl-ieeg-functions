@@ -1,0 +1,64 @@
+function plot_significant_electrode(dat, lab, samp_sd, sigtimes, EEG)
+
+    setsp = strsplit(EEG.setname,'_');
+    subj = setsp{1};
+    task = setsp{2};
+    band = EEG.band;
+    fs = EEG.srate;
+    
+    plt_max = max(dat)+samp_sd;
+    plt_min = min(dat)-samp_sd;
+    if plt_min > 0
+        plt_min = -10;
+    end
+
+    warning('off')
+    showfig = false;
+    
+    if showfig
+        figure
+    else
+        figure('visible', 'off','color','white');
+    end
+    
+    hold on
+
+    [st_tm, en_tm, an_st_tm, an_en_tm, ~, ~, scnd_mrk] = get_lock_times(lock, rtm);
+    
+    % Plot data
+    shade_plot(st_tm:1000/fs:en_tm, dat, samp_sd, rgb('steelblue'), 0.5, 1);
+    
+    % Plot vertical lines
+    plot([0 0] ,[plt_min plt_max], 'k', 'LineWidth', 2);
+    if scnd_mrk > en_tm
+        line([en_tm en_tm], [plt_min plt_max], 'LineStyle', '--', 'Color', 'y')
+    elseif scnd_mrk < st_tm
+        line([st_tm st_tm], [plt_min plt_max], 'LineStyle', '--', 'Color', 'y')
+    else
+        plot([scnd_mrk scnd_mrk], [plt_min plt_max], '--', 'color', [.549, .549, .549])
+    end
+
+    % Plot horizontal lines
+    plot([st_tm     en_tm], [0 0], 'k');
+    plot([an_st_tm  an_en_tm], [0 0], 'k', 'LineWidth',2);
+
+    sig_idc_adj = 1000*(sigtimes+an_st_samp)/fs;
+    for k = 1:size(sig_idc_adj,1)
+        line([sig_idc_adj(k,1) sig_idc_adj(k,2)], [0 0], 'color', 'r', 'linewidth', 2)
+    end
+
+    % Edit plot
+    set(gcf, 'Units','pixels','Position',[100 100 800 600])
+    title(sprintf('Significant %s Activity %s - Channel %s - %s Task', band, subj, lab, task))
+    xlabel('Time (ms)')
+    ylabel('Change from Baseline (%)')
+    xlim(gca, [st_tm en_tm])
+    ylim(gca, [plt_min plt_max])
+    axis tight
+    grid on
+
+    % Save
+    saveas(gca, sprintf('%s/%s_%s.png', plot_pth, foc_nm, lab))
+    close
+
+end

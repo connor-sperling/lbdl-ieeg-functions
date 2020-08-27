@@ -1,10 +1,14 @@
-function A = gl_ar(X,ba,q, subj, nm, ref, lock, band, pth)
+function A = gl_ar(X,ba,q)
 % ba      :     Sparsity controlling parameter. The higher "ba" is,
 %               the sparsest the graphs become.
 % X       :     An (NxT) matrix of the siganl on graph. T is the 
 %               number of tempporal samples and N is number of nodes.
 % q       :     The order of the AR models.
 % A       :     The symmetric adjacency matrix of the graph.
+
+if nargin < 10
+    save_flg = 1;
+end
 
 [N,M] = size(X);
 
@@ -27,16 +31,6 @@ L = reshape(mat_obj*L,N,N);
 D = diag(diag(L));
 A = D - L;
 
-close all
-figure('visible','off')
-imagesc(A); axis square
-title(sprintf('%s | \alpha/\beta = %d | q = %d', nm, ba, q))
-saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.png', pth, subj, ref, lock, band, nm));
-
-figure('visible','off')
-histogram(A(:), 30)
-title(sprintf('%s | a/b = %d | q = %d', nm, ba, q))
-saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_hist.png', pth, subj, ref, lock, band, nm));
 end
 
 function [A1,b1,A2,b2,mat_obj] = laplacian_constraint_vech(N)

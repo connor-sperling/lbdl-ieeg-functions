@@ -148,6 +148,16 @@ if eeg  % For data in EEG format
     task = char(task(end));
     fs = EEG.srate; % sampling rate
     
+    % TEMP patch to include channel numbers for already processed data
+%     if ~strcmp(rsearch, 'RAW') && exist(sprintf('%s_%s_RAW_monopolar_dat.mat', subj, task), 'file')
+%         EEGtemp = EEG;
+%         load(sprintf('%s_%s_RAW_monopolar_dat.mat', subj, task))
+%         EEGraw = EEG;
+%         EEG = EEGtemp;
+%         raw_lab = {EEGraw.chanlocs.labels};
+%         
+%     end
+    
     
     rtm = [EEG.event.resp]'; % reaction time associated with each event
     evn = {EEG.event.type}'; % event names
@@ -158,15 +168,17 @@ if eeg  % For data in EEG format
     if user_yn('change code?')
         cv = readtable(sprintf('%s/%s_CV_%s.xlsx', df_dir, subj, task)); % reads behavioral data associated with patient/task
         % Temporary patch for Marseille data
-%         bound_msk = cellfun(@(x) strcmpi(x,'boundary'), evn); % marks events called 'boundary' from Marseille data
-%         ipt = input('cellfun(@(x) contains(x,255), evn) (0) or false(size(bound_msk)) (1): ');
-%         if ipt
-%             s255_msk = false(size(bound_msk)); 
-%         else
-%             s255_msk = cellfun(@(x) contains(x,'255'), evn);
-%         end
-%         msk = or(bound_msk, s255_msk);
-        msk = false(size(evn)); % temporary
+        bound_msk = cellfun(@(x) strcmpi(x,'boundary'), evn); % marks events called 'boundary' from Marseille data
+        ipt = input('cellfun(@(x) contains(x,255), evn) (0) or false(size(bound_msk)) (1): ');
+        if ipt
+            s255_msk = false(size(bound_msk)); 
+        else
+            s255_msk = cellfun(@(x) contains(x,'255'), evn);
+        end
+        msk = or(bound_msk, s255_msk);
+%         msk = cellfun(@(x) strcmp(x, 'reject'), evn);
+%         msk(204:218) = true;
+%         msk = false(size(evn)); % temporary
         [nevn, rtm, evn_code] = make_evn_codes(cv, msk); % names each event with the chosen behavioral data parameters
         
         % Translates the event rejection from a previous event naming
@@ -259,8 +271,8 @@ if ~eeg
 
     if flt(end) > -1
         p = parpool;
-        for f = numf+1:length(flt)
-            gdat = remove_line_noise_par(gdat', flt(f), fs, 1)';
+        for fg = numf+1:length(flt)
+            gdat = remove_line_noise_par(gdat', flt(fg), fs, 1)';
         end
 
         delete(p)
@@ -278,6 +290,25 @@ end
 
 % In this section, user is able to reject events for future analysis,
 % reject noisy channels, or replace previously rejected events/channels
+
+
+old_df_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs_old/%s/Data Files', location, subj); 
+old_file = sprintf('%s/%s_%s_GEN_bipolar_dat.mat', old_df_dir, subj, task);
+if exist(old_file, 'file')
+    EEGtemp = EEG;
+    load(old_file)
+    EEGold = EEG;
+    EEG = EEGtemp;
+    evreg_old = {EEGold.event.reject};
+    evreg_old = evreg_old(cellfun(@(x) ~isempty(x), evreg_old));
+    evreg_old_num = cellfun(@(x) strsplit(x, '-'), evreg_old, 'UniformOutput', false);
+    evreg_old_num = cellfun(@(x) x{1}, evreg_old_num, 'UniformOutput', false);
+    evreg_old_num = evreg_old_num(cellfun(@(x) all(isstrprop(x,'digit')),evreg_old_num));
+    evnN = cellfun(@(x) strsplit(x, '-'), evn, 'UniformOutput', false);
+    evnN = cellfun(@(x) x{1}, evnN, 'UniformOutput', false);
+    evrej_new = evn(ismember(evnN, evreg_old_num));
+    disp(strjoin(evrej_new))
+end
 
 % Gets list of previously rejected events, if any
 if isfield(EEG.event, 'reject')
@@ -305,7 +336,7 @@ end
 % variable event/channel rejection cell array which recieves user input
 ecrej = {};
 
-f = true;
+fg = true;
 
 % channel/event selection & eegplot
 while eeg
@@ -316,7 +347,7 @@ while eeg
     end
     
     % Displays event list and help menu on first loop, takes user input
-    if f
+    if fg
         ecrej = prompt('ecrej header', evn, evn_idc); 
     else
         ecrej = prompt('arrow');
@@ -374,7 +405,8 @@ while eeg
         else
             crej_no = [];
             for ii = 2:length(ecrej)
-                crej_no = [crej_no find(cellfun(@(x) strcmp(x,ecrej{ii}), glab))];
+                c = strrep(ecrej{ii}, '_', ' ');
+                crej_no = [crej_no find(cellfun(@(x) strcmp(x,c), glab))];
             end
             [gdat, glab, rdat, crej_lab] = remove_channels(gdat, glab, crej_no, rdat, crej_lab);
         end
@@ -399,7 +431,7 @@ while eeg
     end
 
     EEG = make_EEG(EEG, 'dat', gdat, 'labels', glab, 'RejectChans', crej_lab, 'RejectChansData', rdat, 'EventIndex', evn_idc, 'EventType', evn, 'ResponseTime', rtm, 'EventReject', evn_rej, 'saved', 'no');
-    f = false;
+    fg = false;
 end
 
 evn_msk = ~ismember(evn,evn_rej);
@@ -432,7 +464,7 @@ end
     
 % Restart prog for another data set
 if user_yn('process another?')
-    run('iEEGprocessor_new.m')
+    run('iEEGprocessor.m')
 else
     disp('  ')
     disp('Good-bye!')

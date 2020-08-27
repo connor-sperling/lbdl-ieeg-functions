@@ -94,8 +94,11 @@ for subjcell = all_subjs
             for lockcell = {'stim', 'resp'}
                 
                 lock = char(lockcell);
+                EEG.band = band;
+                EEG.lock = lock;
                 
                 tvd_pth = sprintf('%s/%s/analysis/%s/%s/%s/%s/TvD/%s', subjs_dir, subj, studan, ref, lock, typevn, band);
+                dat_pth = sprintf('%s/%s/analysis/%s/%s/%s/%s/data/%s', subjs_dir, subj, studan, ref, lock, typevn, band);
                 
                 tfile = sprintf('%s/txts/%s_average_%s_activity_by_%dms_segments.txt', subjs_dir, study, band, winlen);
                 if delete_tfile
@@ -107,10 +110,10 @@ for subjcell = all_subjs
                 tvd_files = {tvd_files.name};
                 TvDm = [];
                 for t = 1:length(tvd_files)
-                    load(sprintf('%s/%s', tvdpth, tvd_files{t}))
+                    load(sprintf('%s/%s', tvd_pth, tvd_files{t}))
                     TvDm = [TvDm; TvD];
                 end
-                txt4r(EEG, TvDm, winlen, dat_pth, subjs_dir, studan)
+                txt4r(EEG, TvDm, winlen, subjs_dir, dat_pth, studan)
 
             end
         end

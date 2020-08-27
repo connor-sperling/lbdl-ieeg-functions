@@ -3,7 +3,7 @@ function ax = plot_naming_poscat(EEG, dat_files, ch_lab, gsize, study, cnum, cma
     if ispc
         subjs_dir = 'L:/iEEG_San_Diego/Subjs';
     elseif isunix
-        subjs_dir = '/Volumes/LBDL_Extern/bdl-raw/iEEG_San_Diego/Subjs';
+        subjs_dir = '/Volumes/LBDL Extern/bdl-raw/iEEG_San_Diego/Subjs';
     end
    
 
@@ -29,19 +29,19 @@ function ax = plot_naming_poscat(EEG, dat_files, ch_lab, gsize, study, cnum, cma
 %     spbr_pth = sprintf('%s/subject plots by region/%s/%s/%s/Group Size %s/%s/%s', subjs_dir, task, ref, study, gsize, lock, alph);
     
     ap_pth = sprintf('%s/plots/%s/%s', subjs_dir, study, lock);
-    if cnum == 1
-        my_mkdir(ap_pth, sprintf('%s_%s_*', subj, band))
-    end
+%     if cnum == 1
+%         my_mkdir(ap_pth, sprintf('%s_%s_*', subj, band))
+%     end
 
     switch lock
         case 'resp'
             T.st = -1250;
-            T.en = 750;
+            en_tm = 750;
             second_mrk = -mean(rtm);
         case 'stim'
             T.st = -1000;
-            T.st = -400;
-            T.en = 1600;
+            st_tm = -400;
+            en_tm = 1600;
             second_mrk = mean(rtm);
     end
     
@@ -97,8 +97,8 @@ function ax = plot_naming_poscat(EEG, dat_files, ch_lab, gsize, study, cnum, cma
             maxplot = maxdat;
         end
         
-        tsamp = floor((T.st-T.st)*fs/1000)+1:floor((T.en-T.st)*fs/1000)+1;
-        tmesh = T.st:1000/fs:T.en;
+        tsamp = floor((st_tm-T.st)*fs/1000)+1:floor((en_tm-T.st)*fs/1000)+1;
+        tmesh = st_tm:1000/fs:en_tm;
         datd = dat(tsamp);
         
         X(:,ii) = plot(tmesh, datd, 'color', c, 'Linewidth', 2, 'DisplayName', ['Pos. in Cat.: ' cat_no]);
@@ -106,18 +106,18 @@ function ax = plot_naming_poscat(EEG, dat_files, ch_lab, gsize, study, cnum, cma
     end
     
     plot([0 0] ,[minplot-20 maxplot+20], 'LineWidth', 1, 'Color', 'k');
-    plot([T.st T.en], [0 0],'k','LineWidth',1);
-    if second_mrk > T.en
-        line([T.en T.en], [minplot-10 maxplot+10], 'LineStyle', '--', 'Color', 'y')
-    elseif second_mrk < T.st
-        line([T.st T.st], [minplot-10 maxplot+10], 'LineStyle', '--', 'Color', 'y')
+    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    if second_mrk > en_tm
+        line([en_tm en_tm], [minplot-10 maxplot+10], 'LineStyle', '--', 'Color', 'y')
+    elseif second_mrk < st_tm
+        line([st_tm st_tm], [minplot-10 maxplot+10], 'LineStyle', '--', 'Color', 'y')
     else
         plot([second_mrk second_mrk], [minplot-10 maxplot+10], '--', 'color', [.549, .549, .549])
     end
 
     
     title(sprintf('%s - %s - Naming Task - %s ref. - %s', subj, ch_lab, ref, lock))
-    xlim([T.st T.en])
+    xlim([st_tm en_tm])
     ylim([minplot-10 maxplot+10])
     xlab = xlabel('Time (ms)');
     ylab = ylabel('Change from Baseline (%)');

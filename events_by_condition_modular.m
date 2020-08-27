@@ -1,4 +1,4 @@
-function events_by_condition(EEG, id_name, idents, pth, study, cmat) 
+function events_by_condition_modular(EEG, pth, study, arg, conditions, cmat) 
 
     evn = {EEG.analysis.type}';
     evn_idc = [EEG.analysis.latency]';
@@ -7,12 +7,14 @@ function events_by_condition(EEG, id_name, idents, pth, study, cmat)
     adat_pth = sprintf('%s/ALL/data/%s', pth, EEG.band);
     fdat_pth = sprintf('%s/condition/data/%s', pth, EEG.band);
     
-
     % convert channel data into matricies of event resonses
     segment_events_per_channel(EEG, evn, evn_idc, rtm, adat_pth, 'ALL') 
 
     % Perform statistical analysis to find significant channels
-    TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', pth), 'ALL');
+%     TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', pth), 'ALL');
+    TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', pth), 'ALL');
+
+%     TvD = sig_electrode_pwr(EEG, rtm, sprintf('%s/ALL', pth), 'ALL');
 
     sig_chans = string(TvD(:,2)); % list of significant channels
     all_chans = string({EEG.chanlocs.labels}'); % all channels
@@ -27,20 +29,9 @@ function events_by_condition(EEG, id_name, idents, pth, study, cmat)
 
     sig_all = TvD(:,2);
 
-        
-    for i = 1:length(idents)
-        grp = idents{i};
-        foc_nm = sprintf('%s-%s', id_name, grp);
-        
-        % find events that fall into a ceratain category of event name
-        id_msk = cellfun(@(x) contains(x, grp), evn); 
-        
-        % Filter event information
-        fevn = evn(id_msk); 
-        fevn_idc = evn_idc(id_msk);
-        frtm = rtm(id_msk);
-        
-        segment_events_per_channel(ses_EEG, fevn, fevn_idc, frtm, fdat_pth, foc_nm);
+    [Evns, Evnis, Rtms] = modular_evn_split(arg, evn, evn_idc, rtm, 'filt', '*-mod(*,2)==0-*-*-*-*');
+    for i = 1:length(conditions)
+        segment_events_per_channel(ses_EEG, Evns{i}, Evnis{i}, Rtms{i}, fdat_pth, conditions{i});
     end
 
     % plot

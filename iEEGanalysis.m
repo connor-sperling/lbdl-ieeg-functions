@@ -33,24 +33,26 @@ subjs = {subjs.name};
 % Select subjects
 all_subjs = prompt('pick subjs', subjs);
 all_subjs = strsplit(all_subjs);
-
 if strcmpi(all_subjs{1}, 'all')
     all_subjs = subjs; 
 end
 
 % select study = <task>_<research name-subtype>
+% The name of the "study" gives the rest of the code a lot of
+% information about how to analyze the dataset. "task" refers to
+% the actual task that the subject performed, "researchname" refers
+% to how the data was pre-processed - if error trials were rejected
+% or not, if filler trials exist in the anaylzable data or not,
+% etc. "subtype" exists to allow a pre-processed dataset to be
+% analyzed in multiple ways without creating redundant data.
 studies = prompt('pick study', all_tasks);
 studies = strsplit(studies);
 
-idepa = prompt('study condition');
 
-% Current supported frequency bands: HFB 70-150 Hz, LFP 0-30 Hz
+% Choose HFB, LFP or both to analyze: HFB 70-150 Hz, LFP 0-30 Hz
 all_bands = {'HFB', 'LFP'};
-
-% Choose HFB, LFP or both to analyze
 bands = prompt('pick band');
 bands = strsplit(bands);
-
 if strcmpi(bands{1}, 'both')
     bands = all_bands;
 end
@@ -59,23 +61,22 @@ end
 ref = prompt('reference');
 
 
-
-for subjcell = all_subjs
+for subjcell = all_subjs % loop through selected subjects
     
     subj = char(subjcell);
     
-    an_dir = sprintf('%s/%s/analysis', subjs_dir, subj);
-    df_dir = sprintf('%s/%s/data', subjs_dir, subj); 
+    an_dir = sprintf('%s/%s/analysis', subjs_dir, subj); % analysis directory: for output files/plots
+    df_dir = sprintf('%s/%s/data', subjs_dir, subj); % data files directory: for input/pre-processed data
     
-    for studycell = studies
+    for studycell = studies % loop through selected studies
 
-        cd(df_dir);
+        cd(df_dir); % change directory to subject data files
         
-        studan = char(studycell);
-        studsp = strsplit(studan, '_');
-        task = studsp{1};
-        rspl = strsplit(studsp{2}, '-');
-        study = sprintf('%s_%s', task, rspl{1});
+        studan = char(studycell); % 'task_researchname-subtype
+        stsplt = strsplit(studan, '_'); % {task} {researchname-subtype}
+        task = stsplt{1}; % 'task'
+        rspl = strsplit(stsplt{2}, '-'); % {researchname} {subtype}
+        study = sprintf('%s_%s', task, rspl{1}); % 'task_researchname'
         
         eeg_file = sprintf('%s_%s_%s_dat.mat', subj, study, ref);
         
@@ -98,7 +99,7 @@ for subjcell = all_subjs
             
             band = char(bndcell);
             
-            for lockcell = {'stim', 'resp'}
+            for lockcell = {'stim','resp'}
                 
                 lock = char(lockcell);
 
@@ -108,24 +109,24 @@ for subjcell = all_subjs
 
                 % Create directories for data and plots
                 lock_pth = sprintf('%s/%s/%s/%s', an_dir, studan, ref, lock);
-                alldat = sprintf('%s/ALL/data/%s', lock_pth, band);
-                allplt = sprintf('%s/ALL/plots/%s', lock_pth, band);
-                alltvd = sprintf('%s/ALL/TvD/%s', lock_pth, band);
-                condat = sprintf('%s/condition/data/%s', lock_pth, band);
-                conplt = sprintf('%s/condition/plots/%s', lock_pth, band);
-                contvd = sprintf('%s/condition/TvD/%s', lock_pth, band);
-                aplt = sprintf('%s/plots/%s/%s', subjs_dir, studan, lock);
+                alldat_pth = sprintf('%s/ALL/data/%s', lock_pth, band);
+                allplt_pth = sprintf('%s/ALL/plots/%s', lock_pth, band);
+                alltvd_pth = sprintf('%s/ALL/TvD/%s', lock_pth, band);
+                condat_pth = sprintf('%s/condition/data/%s', lock_pth, band);
+                conplt_pth = sprintf('%s/condition/plots/%s', lock_pth, band);
+                contvd_pth = sprintf('%s/condition/TvD/%s', lock_pth, band);
+                plt_dir = sprintf('%s/plots/%s/%s', subjs_dir, studan, lock);
 
                 % my_mkdir makes the directory if it does not exist and
                 % deletes the contents of a specific file type if it does
                 % exist. The latter is necessary so that data from a
                 % certain channel does not remain in the directory after
                 % analysis changes which then deems it not significant
-                my_mkdir(alldat, '*.mat', allplt, '*.png')
-                my_mkdir(condat, '*.mat', conplt, '*.png')
-                my_mkdir(aplt, sprintf('%s_%s_*', subj, band))
-                my_mkdir(alltvd, '*.mat') 
-                my_mkdir(contvd, '*.mat')
+                my_mkdir(alldat_pth, '*.mat', allplt_pth, '*.png')
+                my_mkdir(condat_pth, '*.mat', conplt_pth, '*.png')
+                my_mkdir(plt_dir, sprintf('%s_%s_*', subj, band))
+                my_mkdir(alltvd_pth, '*.mat') 
+                my_mkdir(contvd_pth, '*.mat')
 
                 prompt('processing info', subj, task, band, lock, size(EEG.data,1), length(evn), length(raw_evn))
 
@@ -135,48 +136,69 @@ for subjcell = all_subjs
 
                     case 'Naming_CSIE'
                         idepa = 0;
-                        cmat = [119 68 0;155, 118, 16;171, 148,57; 202, 181,70;213, 222, 92;234, 243, 104];
+                        cmat = [119, 68, 0; 155, 118, 16; 171, 148, 57;...
+                                202, 181,70;213, 222, 92; 234, 243, 104];
                         naming_analysis(EEG, studan, lock_pth, cmat)
 
                     case 'Naming_HLD'
-                        events_by_condition(EEG, 'Den', {'HD', 'LD'}, lock_pth, studan, idepa) 
+                        analyze_events_by_condition(EEG, 'Den', {'HD', 'LD'}, lock_pth, studan) 
 
                     case 'Naming_ERRAN'
-                        events_by_condition(EEG, 'ErrC', {'0', '1'}, lock_pth, studan, idepa) 
+                        analyze_events_by_condition(EEG, 'ErrC', {'0', '1'}, lock_pth, studan) 
 
                     case 'Stroop_EA-error'
                         cmat = [0,   85,  196;...
                                 210, 180, 126]./255;
-                        events_by_condition(EEG, 'ErrC', {'-1-0', '-0-1'}, lock_pth, studan, idepa, cmat) 
+                        analyze_events_by_condition(EEG, 'ErrC', {'-1-0', '-0-1'}, lock_pth, studan, cmat) 
 
-                    case 'Stroop_EA-congruency'
-                        idepa = 0;
+                    case 'Stroop_EA-congruency' % 7/31 - Spatial stroop C vs. I
                         cmat = [0,   85,  196;...
                                 166, 205, 255;...
                                 210, 180, 126;...
                                 124, 81,  8]./255;
-                        events_by_condition(EEG, 'Cong', {'C-C', 'C-I', 'I-C', 'I-I'}, lock_pth, studan, idepa, cmat);
+%                         cmat = [0,   85,  196;...
+%                                 210, 180, 126]./255;
+                        analyze_events_by_condition(EEG, 'Cong', {'C-C', 'C-I', 'I-C', 'I-I'}, lock_pth, studan, cmat);
+%                         events_by_condition_modular(EEG, lock_pth, studan, '*-*-*-x-*-*', {'Cong_Space', 'Incong_Space'}, cmat);
+                        
 
                     case 'Stroop_EA'
-                        channel_by_event(EEG, {EEG.analysis.type}' , [EEG.analysis.latency]', [EEG.analysis.resp]', alldat, 'ALL') 
+                        % For connectivity maps
+%                         segment_events_per_channel(EEG, {EEG.analysis.type}' , [EEG.analysis.latency]', [EEG.analysis.resp]', alldat, 'ALL') 
+%                         TvD = sig_freq_band(EEG, [EEG.analysis.resp]', sprintf('%s/ALL', lock_pth), 'ALL');
+%                         segment_channels_per_event(EEG, TvD, condat, 'allChanPerEvn')
+                        
+                        % Beta testing new significance tests
+                        evn = {EEG.analysis.type}';
+                        evn_idc = [EEG.analysis.latency]';
+                        rtm = [EEG.analysis.resp]';
+                        segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
+                        TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+%                         eielectrode_psd(EEG, evn, evn_idc, rtm, chan_power_dat_pth, 'ALL')
+                        
+                        
+                    case 'Stroop_CIC-CM'
+                        segment_events_per_channel(EEG, {EEG.analysis.type}' , [EEG.analysis.latency]', [EEG.analysis.resp]', alldat_pth, 'ALL') 
                         TvD = sig_freq_band(EEG, [EEG.analysis.resp]', sprintf('%s/ALL', lock_pth), 'ALL');
-                        stim_segmentation(EEG, TvD, condat, 'allChanPerEvn')
-
+                        segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
+                        
                     case 'Stroop_CIC-NR'
-                        idepa = 0;
                         stroop_NR_analysis(EEG, studan, lock_pth)
 
                     case 'Stroop_CIC-R'
-                        idepa = 0;
                         stroop_R_analysis(EEG, studan, lock_pth)
 
                     case 'DA_GEN'
-                        channel_by_event(EEG, evn, evn_idc, rtm, alldat, 'ALL') 
-                        TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+                        segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+%                         plot_DA_DV(EEG, study)
 
                     case 'DV_GEN'
-                        channel_by_event(EEG, evn, evn_idc, rtm, alldat, 'ALL') 
-                        TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+                        segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+%                         plot_DA_DV(EEG, study)
+                        
+                        
                 end
             end       
         end    

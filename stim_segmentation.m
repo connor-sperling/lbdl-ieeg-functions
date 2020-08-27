@@ -8,18 +8,18 @@ function stim_segmentation(EEG, TvD, pth, foc_nm)
     end
     
     fs = EEG.srate; 
-    lock = EEG.lock{end};
-    band = EEG.band{end};
+    lock = EEG.lock;
+    band = EEG.band;
     rsp_idc = round(abs(rtm)./1000 *fs); % abs of rtm because incorrect reponses identified with a negative response time
     
     switch lock 
-        case 'Response Locked'
+        case 'resp'
             t_st = -650;
             t_en = 150;
 %             t_bl_st = -1250;
 %             t_bl_en = -750;
             lidc = evn_idc + rsp_idc;
-        case 'Stimulus Locked'           
+        case 'stim'           
             t_st = 0;
             t_en = 800;
 %             t_bl_st = -500;
@@ -47,10 +47,22 @@ function stim_segmentation(EEG, TvD, pth, foc_nm)
     
     for kk = 1:size(dat,1)        
         if strcmp(band, 'HFB') 
-            dat_bp = bandpass(dat(kk,:), [70, 150], fs);
-            datT(kk,:) = dat_bp;
+            Wp = [70 150]/(fs/2);
+            Ws = [60 160]/(fs/2);
+            Rp = 3;
+            Rs = 40;
+            [n,Ws] = cheb2ord(Wp,Ws,Rp,Rs);
+            [b,a] = cheby2(n,Rs,Ws);
+            datT(kk,:) = filtfilt(b, a, dat(kk,:));
+%             dat_bp = bandpass(dat(kk,:), [70, 150], fs);
+%             datT(kk,:) = dat_bp;
         elseif strcmp(band, 'LFP')
-            [b,a] = butter(4, 30/(fs/2), 'low');
+            Wp = 30/(fs/2);
+            Ws = 45/(fs/2);
+            Rp = 3;
+            Rs = 40;
+            [n,~] = buttord(Wp,Ws,Rp,Rs);
+            [b,a] = butter(n, Wp, 'low');
             datT(kk,:) = filtfilt(b,a,dat(kk,:));
         else
             datT(kk,:) = dat(kk,:);
@@ -68,7 +80,7 @@ function stim_segmentation(EEG, TvD, pth, foc_nm)
         
     end
     
-    save(sprintf('%s/%s_%s_%s.mat', pth, foc_nm, pt_nm, EEG.ref), 'evn_seg');
+    save(sprintf('%s/%s_%s_%s_mean.mat', pth, foc_nm, pt_nm, EEG.ref), 'evn_seg');
 
     for kk = 1:length(lidc)  
         evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs)+1);

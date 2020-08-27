@@ -53,7 +53,7 @@ end
 if plt
     szc = size(c);
 
-    if szc(1) < szc(2)
+    if szc(1) < szc(2) && sum(szc) > 6
         c = c';
     elseif szc(1) == szc(2)
         warning('testcolorgrad assumes different color values in rows and rgb values in columns')
