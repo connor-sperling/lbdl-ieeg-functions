@@ -79,7 +79,7 @@ full_files = char(full_files);
 % Files found in df_dir are written to lists (rec_files, etc.). If it
 % didnt find any files, warning is thrown and user has option to place
 % files in df_dir
-if isempty(full_files) || size(hdr_files,1) ~= size(rec_files,1)
+if isempty(full_files)
     while true
         [ufile,upath] = uigetfile;
         if isequal(ufile, 0)

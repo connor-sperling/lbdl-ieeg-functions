@@ -1,4 +1,4 @@
-function generate_connectivity_maps(subjs_dir, study, ref, locks, bands, abr)
+function generate_connectivity_maps(subjs_dir, study, ref, locks, bands, atlas, abr)
 
 opt_sparsity = 0.6;
 tol_init = 0.001;
@@ -17,7 +17,11 @@ end
 loc_key = readtable(loc_key_file);
 loc = []; % for the case when annotate_brain_region = false
 
-subjs = dir(sprintf('%s/sd*', subjs_dir));
+if contains(xl_dir, 'San_Diego')
+    subjs = dir(sprintf('%s/sd*', subjs_dir));
+else
+    subjs = dir(sprintf('%s/pt*', subjs_dir));
+end
 subjs = {subjs.name};
 
 for p = 1:length(subjs) % loop thru patients
@@ -37,7 +41,7 @@ if exist(stddir, 'dir') % check if study exists for patient
         dfiles = {dfiles.name}; % all stimuls event files
         
         if abr
-            xl_nm = sprintf('significant_%s_%s_%s_%s_Desikan_Killiany_localization',study,ref,lock,band);
+            xl_nm = sprintf('significant_%s_%s_%s_%s_%s_localization',study,ref,lock,band,atlas);
             loc = readtable(sprintf('%s/%s.xlsx',xl_dir,xl_nm));
         end
         

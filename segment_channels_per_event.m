@@ -4,7 +4,7 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
    
     subj = strsplit(EEG.setname,'_');
     subj = subj{1};
-    fs = EEG.srate; 
+    fs = EEG.srate;
     band = EEG.band;
     evn = {EEG.analysis.type}';
     
@@ -16,7 +16,7 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
     an_en = T.lidc + floor(T.en./1000 *fs); % Idx of lock +  analysis window end time
 
     lab = {EEG.chanlocs.labels}';
-    dat = [EEG.data];
+    dat = double([EEG.data]);
     
     % trim non-significant data from data matrix
     sig_lab = TvD(:,2);

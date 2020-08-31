@@ -1,13 +1,15 @@
-function xl_bip_nm = bipolar_reference_loc_data(fdir, fname, atlas)
+function xl_bip_nm = bipolar_reference_loc_data(fdir, fname, location, atlas)
 
 
 data = readtable(sprintf('%s/%s.xlsx', fdir, fname));
 subjs = data.subj;
 [~,~,subIdx] = unique(subjs,'stable');
 
-
-locbi = cell2table(cell(0,4), 'VariableNames', {'subj', 'Lateralization', 'SEEGChannel', 'Localization'});
-
+if strcmp(location, 'San_Diego')
+    locbi = cell2table(cell(0,3), 'VariableNames', {'subj', 'SEEGChannel', 'Localization'});
+elseif
+    locbi = cell2table(cell(0,3), 'VariableNames', {'subj', 'Lateralization', 'SEEGChannel', 'Localization'});
+end
     
 for j = 1:max(subIdx)
 
@@ -17,7 +19,7 @@ for j = 1:max(subIdx)
     subj = subdat.subj;
     loc = subdat.(atlas);
     lab = subdat.SEEGChannel;
-    if any(strcmp('Lateralization',subdat.Properties.VariableNames))
+    if strcmp('Lateralization',subdat.Properties.VariableNames)
         lat = subdat.Lateralization;
     else
         lat = zeros(length(loc), 1);
@@ -70,15 +72,12 @@ for j = 1:max(subIdx)
     dloc(dIdx) = [];
     dloc(~cmsk) = [];
     
-    lat(1) = [];
     lat(dIdx) = [];
-    lat(~cmsk) = [];
     
     subj = subj(1:length(dlab));
     SEEGChannel = dlab;
     Localization = dloc;
-    Lateralization = lat;
-    dsubloc = table(subj, Lateralization, SEEGChannel, Localization);
+    dsubloc = table(subj, SEEGChannel, Localization);
     locbi = [locbi; dsubloc];
 end
 xl_bip_nm = sprintf('%s_%s_bipolar',fname,atlas);

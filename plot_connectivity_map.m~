@@ -1,6 +1,5 @@
 function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth, loc)
 
-    evn_nm = erase(evn_nm,'.mat');
     N = size(A,1);
     vis = 'on';
     h = figure('visible',vis);
@@ -13,10 +12,9 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
         loc_subj = loc(cellfun(@(x) strcmp(x,subj), loc.subj),:);
         regions = loc_subj.region;
         rsplt = cellfun(@(x) strsplit(x, '-'), regions, 'uni', 0);
-        lat = cellfun(@(x) x{1}, rsplt, 'uni', 0);
-        hemi_div = find(cellfun(@(x) strcmp(x,'R'),lat)==1, 1)-.5;
-        line([.5, N+.5], [hemi_div hemi_div], 'color', 'r', 'linewidth', 2);
-        line([hemi_div hemi_div], [.5, N+.5], 'color', 'r', 'linewidth', 2);
+        lat = cellfun(@(x) rsplt{1}, rsplt, 'uni', 0);
+        hemi_div = find(cellfun(@(x) strcmp(x,'R'),lat)==1, 1);
+        
         [Ru,~,Ridx] = unique(regions,'stable');
         P = h.CurrentAxes.Position;
         xst = P(1); xen = xst + P(3);
@@ -48,10 +46,11 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
         end
     end
     
-    
+    evn_nm = erase(evn_nm,'.mat');
     saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.png', pth, subj, ref, lock, band, evn_nm));
 
-    figure('visible',vis)
+    figure('visible','off')
+    % figure
     histogram(A(:), 30)
     title(sprintf('%s | %s = %d | q = %d',evn_nm,'\alpha/\beta',ba,ar_ord))
     saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_hist.png', pth, subj, ref, lock, band, evn_nm));

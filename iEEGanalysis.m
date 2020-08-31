@@ -197,7 +197,16 @@ for subjcell = all_subjs % loop through selected subjects
                         segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
                         TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
 %                         plot_DA_DV(EEG, study)
+
+                    case 'DA_GEN-CM'
+                        segment_events_per_channel(EEG, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
+                        segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
                         
+                    case 'DV_GEN-CM'
+                        segment_events_per_channel(EEG, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
+                        segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
                         
                 end
             end       

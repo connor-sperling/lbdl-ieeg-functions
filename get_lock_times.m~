@@ -1,15 +1,11 @@
-function T = get_lock_times(EEG, L)
+function T = get_lock_times(EEG, lstr, L)
 
-    if nargin == 2 && isempty(EEG) && (strcmp(L,'stim') || strcmp(L, 'resp'))
-        lock = L;
-        rtmi = [];
-        evni = [];
-    else
-        lock = EEG.lock;
-        rtm = [EEG.analysis.resp]';
-        rtmi = round(rtm./1000 *EEG.srate);
-        evni = [EEG.analysis.latency]';
-    end
+
+if ~isempty(EEG)
+    lock = EEG.lock;
+    rtm = [EEG.analysis.resp]';
+    rtmi = round(rtm./1000 *EEG.srate);
+    evni = [EEG.analysis.latency]';
 
     T = struct;
     switch lock
@@ -32,5 +28,6 @@ function T = get_lock_times(EEG, L)
             T.scnd_mrk = mean(rtm); % average response onset
             T.lidc = evni;
     end
+elseif n
 
 end

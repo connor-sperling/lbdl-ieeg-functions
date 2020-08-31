@@ -156,8 +156,8 @@ for subjcell = all_subjs % loop through selected subjects
                                 166, 205, 255;...
                                 210, 180, 126;...
                                 124, 81,  8]./255;
-                        cmat = [0,   85,  196;...
-                                210, 180, 126]./255;
+%                         cmat = [0,   85,  196;...
+%                                 210, 180, 126]./255;
                         analyze_events_by_condition(EEG, 'Cong', {'C-C', 'C-I', 'I-C', 'I-I'}, lock_pth, studan, cmat);
 %                         events_by_condition_modular(EEG, lock_pth, studan, '*-*-*-x-*-*', {'Cong_Space', 'Incong_Space'}, cmat);
                         
@@ -187,6 +187,16 @@ for subjcell = all_subjs % loop through selected subjects
 
                     case 'Stroop_CIC-R'
                         stroop_R_analysis(EEG, studan, lock_pth)
+
+                    case 'DA_GEN'
+                        segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+%                         plot_DA_DV(EEG, study)
+
+                    case 'DV_GEN'
+                        segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, rtm, sprintf('%s/ALL', lock_pth), 'ALL');
+%                         plot_DA_DV(EEG, study)
 
                     case 'DA_GEN'
                         segment_events_per_channel(EEG, evn, evn_idc, rtm, alldat_pth, 'ALL') 

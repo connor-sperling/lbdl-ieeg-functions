@@ -13,14 +13,8 @@ function plot_significant_electrode(dat, lab, samp_sd, sigtimes, EEG, plot_pth, 
     end
 
     warning('off')
-    showfig = false;
-    
-    if showfig
-        figure
-    else
-        figure('visible', 'off','color','white');
-    end
-    
+    vis = 'off';
+    figure('visible', vis,'color','white'); 
     hold on
 
     T = get_lock_times(EEG);
@@ -41,11 +35,14 @@ function plot_significant_electrode(dat, lab, samp_sd, sigtimes, EEG, plot_pth, 
     % Plot horizontal lines
     plot([T.st     T.en], [0 0], 'k');
     plot([T.an_st  T.an_en], [0 0], 'k', 'LineWidth',2);
-
-%     sig_idc_adj = 1000*(sigtimes+an_st_samp)/fs;
-%     for k = 1:size(sig_idc_adj,1)
-%         line([sig_idc_adj(k,1) sig_idc_adj(k,2)], [0 0], 'color', 'r', 'linewidth', 2)
-%     end
+    plot([T.st     T.en], [10 10], '-k');
+    
+    sig_idc_adj = 1000*(sigtimes)/fs + T.an_st;
+    for k = 1:size(sig_idc_adj,1)
+        line([sig_idc_adj(k,1) sig_idc_adj(k,2)], [0 0], 'color', 'r', 'linewidth', 2)
+%         line([sig_idc_adj(k,1) sig_idc_adj(k,1)], [0 dat(round((sig_idc_adj(k,1)-T.bl_st)*fs/1000))],'color','r')
+%         line([sig_idc_adj(k,2) sig_idc_adj(k,2)], [0 dat(round((sig_idc_adj(k,2)-T.bl_st)*fs/1000))],'color','r')
+    end
 
     % Edit plot
     set(gcf, 'Units','pixels','Position',[100 100 800 600])

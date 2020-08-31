@@ -47,6 +47,7 @@ function TvD = significant_electrode_zscore(EEG, pth, foc_nm)
         % correct for multiple comparisons
         [pthr, ~, padj] = fdr2(P,q); % false detection rate
         hcorr = P < pthr;
+        sum(hcorr)
         
         % require significant data to be >= 10% above baseline
         hcorr = (mean(dat,1)'>=10) & hcorr;
@@ -61,6 +62,8 @@ function TvD = significant_electrode_zscore(EEG, pth, foc_nm)
         sig_offset = offset_idc(sig_chunk_msk); % onset of significance
         sig_onset = onset_idc(sig_chunk_msk); % offset of significance
 
+        % if a channel is found to have a significant region, make new row
+        % in TvD
         if sum(sig_chunk_msk) > 0
             k = k + 1;
             TvD{k,1} = ii;

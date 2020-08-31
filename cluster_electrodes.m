@@ -5,43 +5,38 @@
 clear
 close all
 
-subj = 'sd18';
-% study = 'DA_GEN';
-study = 'Stroop_CIC-CM';
+% San Diego
+% subj = 'sd18';
+% study = 'Stroop_CIC-CM';
+% location = 'San_Diego';
+% fs = 1024;
+% xl_nm = 'stroop_loc_Desikan_Killiany_bipolar';
+
+% Marseille
+subj = 'pt20';
+study = 'DA_GEN';
+location = 'Marseille';
+fs = 1000;
+xl_nm = 'all_localization_6_9_20_29_bipolar';
+
 lock = 'stim';
 band = 'LFP';
-location = 'San_Diego';
-fs = 1024;
-% xl_nm = 'all_localization_6_9_20_29_bipolar';
-xl_nm = 'stroop_loc_Desikan_Killiany_bipolar';
+
+
+
+
 
 subjs_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs/',location);
 dpth = sprintf('%s/%s/analysis/%s/bipolar/%s/ALL/data/%s/',subjs_dir,subj,study,lock,band);
 
 load(sprintf('%s/%s_mean_sig_data.mat',dpth,subj), 'elecs_dat', 'lab')
 
-switch lock
-    case 'resp'        
-        st_tm = -1250; % window start time w.r.t response onset
-        an_st_tm = -750; % time analysis begins w.r.t response onset
-        an_en_tm = 750; % time analysis ends w.r.t response onset
-        en_tm = 750; % window end time w.r.t response onset
-        t_bl_st = -1250; % baseline start time w.r.t response onset
-        t_bl_en = -750;
-
-    case 'stim'
-        st_tm = -1000;
-        an_st_tm = 0;
-        an_en_tm = 1000;
-        en_tm = 1600;
-        t_bl_st = -500;
-        t_bl_en = 0;
-end
+T = get_lock_times([], lock);
 
 % Convert to samples
-an_st = round(abs(an_st_tm-st_tm)*fs/1000)+1;
-an_en = round(abs(an_en_tm-st_tm)*fs/1000);
-st_sam = round(st_tm/1000*fs);
+an_st = round(abs(T.an_st-T.st)*fs/1000)+1;
+an_en = round(abs(T.an_en-T.st)*fs/1000);
+st_sam = round(T.st/1000*fs);
     
 dat = elecs_dat(an_st:end,:);
 rdim = 5;
@@ -122,18 +117,18 @@ pmin = min(mean(M,2)-10);
 if pmin > 0
     pmin = -10;
 end
-tsamp = floor((an_st_tm-st_tm)*fs/1000)+1:floor((en_tm-an_st_tm)*fs/1000)+1;
-tmesh = st_tm:1000/fs:en_tm;
+tsamp = floor((T.an_st-T.st)*fs/1000)+1:floor((T.en-T.an_st)*fs/1000)+1;
+tmesh = T.st:1000/fs:T.en;
 datd = M(tsamp,:);
         
 figure
 hold on
-xlim([st_tm en_tm])
+xlim([T.st T.en])
 ylim([pmin pmax])
 for m = 1:size(M,2)
     plot(tmesh,M(:,m),'color',clr(m,:), 'linewidth', 1.5);
-    plot([st_tm     en_tm], [0 0], 'k');
-    plot([an_st_tm  an_en_tm], [0 0], 'k', 'LineWidth',2);
+    plot([T.st     T.en], [0 0], 'k');
+    plot([T.an_st  T.an_en], [0 0], 'k', 'LineWidth',2);
     plot([0 0] ,[pmin pmax], 'k', 'LineWidth', 2);
 end
 

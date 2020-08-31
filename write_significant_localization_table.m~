@@ -39,7 +39,7 @@ for l = 1:length(locks)
         for n = 1:length(uniq_loc)
             loc_nm = uniq_loc{n};
             loc_msk = cellfun(@(x) strcmpi(x, loc_nm), sig_loc_subj.Localization);
-            all_loc_n = table2cell(sig_loc_subj(loc_msk,:));
+            all_loc_n = table2cell(sig_loc_subj(loc_msk,1:3));
             if isempty(all_loc_n)
                 dummy = 1;
             end
@@ -88,7 +88,7 @@ for l = 1:length(locks)
                 region_code(k) = {sprintf('%s-%s/%s',hemi,region_code_d,region_code_m)};
             end
         else
-            region_code = cellfun(@(x,y) sprintf('%s-%s',x,y),subj_loc_org(:,2),subj_loc_org(:,4), 'uni', 0);
+            region_code = cellfun(@(x,y) sprintf('%s-%s',x,y),subj_loc_org(:,2),subj_loc_org(:,3), 'uni', 0);
         end
         
         subj_loc_org = [subj_loc_org region_code];
@@ -122,7 +122,7 @@ for l = 1:length(locks)
                     stop = 1;
                 end
                 midx = find(cellfun(@(x) strcmp(x,mreg), key.abv)==1, 1);
-                if contains(mreg, 'WM') && ~contains(dreg, 'WM') || strcmp(mreg, 'U') && ~strcmp(dreg, 'U') || contains(mreg, 'blanc') && ~contains(dreg, 'blanc') || contains(mreg, 'out') && ~contains(dreg, 'out')
+                if contains(mreg, 'WM') && ~contains(dreg, 'WM') || strcmp(mreg, 'U') && ~strcmp(dreg, 'U')
                     ord_position(m) = didx;
                     R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' dreg]};
                 elseif isempty(mreg) && ~isempty(dreg)
@@ -164,7 +164,7 @@ for l = 1:length(locks)
         
         loc_org = [loc_org; subj_loc_org]; % store list
     end
-    loc_org = cell2table(loc_org(:,3:end)); % drop the subj/lat cols. Useful for debugging in loops, not necessary for table
+    loc_org = cell2table(loc_org(:,2:end)); % drop the subj col. It's useful for debugging in loops, not necessary for table
     loc_org.Properties.VariableNames = {'channel_organized', 'localization_organized', 'loc_code', 'region'};
     sig_loc = [sig_loc loc_org];
 
