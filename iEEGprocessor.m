@@ -111,8 +111,8 @@ if contains(full_files(file_idx,:),'REC')
     load(fname);
 elseif contains(full_files(file_idx,:),'edf') || contains(full_files(file_idx,:),'EDF')
     [Hdr, Rec] = edfread(fname);
-    save([df_dir strtrim(erase(full_files(file_idx,:), ".EDF")) 'REC.mat'], 'Rec', '-v7.3');
-    save([df_dir strtrim(erase(full_files(file_idx,:), ".EDF")) 'HDR.mat'], 'Hdr');
+    save(sprintf('%s/%sREC.mat',df_dir, strtrim(erase(full_files(file_idx,:), ".EDF"))), 'Rec', '-v7.3');
+    save(sprintf('%s/%sHDR.mat',df_dir, strtrim(erase(full_files(file_idx,:), ".EDF"))), 'Hdr');
 elseif contains(full_files(file_idx,:),'dat')
     load(fname);
 end
@@ -168,18 +168,18 @@ if eeg  % For data in EEG format
     if user_yn('change code?')
         cv = readtable(sprintf('%s/%s_CV_%s.xlsx', df_dir, subj, task)); % reads behavioral data associated with patient/task
         % Temporary patch for Marseille data
-        bound_msk = cellfun(@(x) strcmpi(x,'boundary'), evn); % marks events called 'boundary' from Marseille data
-        ipt = input('cellfun(@(x) contains(x,255), evn) (0) or false(size(bound_msk)) (1): ');
-        if ipt
-            s255_msk = false(size(bound_msk)); 
-        else
-            s255_msk = cellfun(@(x) contains(x,'255'), evn);
-        end
-        msk = or(bound_msk, s255_msk);
+%         bound_msk = cellfun(@(x) strcmpi(x,'boundary'), evn); % marks events called 'boundary' from Marseille data
+%         ipt = input('cellfun(@(x) contains(x,255), evn) (0) or false(size(bound_msk)) (1): ');
+%         if ipt
+%             s255_msk = false(size(bound_msk)); 
+%         else
+%             s255_msk = cellfun(@(x) contains(x,'255'), evn);
+%         end
+%         msk = or(bound_msk, s255_msk);
 %         msk = cellfun(@(x) strcmp(x, 'reject'), evn);
 %         msk(204:218) = true;
 %         msk = false(size(evn)); % temporary
-        [nevn, rtm, evn_code] = make_evn_codes(cv, msk); % names each event with the chosen behavioral data parameters
+        [nevn, rtm, evn_code] = make_evn_codes(cv); % names each event with the chosen behavioral data parameters
         
         % Translates the event rejection from a previous event naming
         % scheme to the new names. Allows user to replace previously

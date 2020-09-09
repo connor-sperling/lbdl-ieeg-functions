@@ -6,7 +6,7 @@ tol_stp = 0.002;
 ztol = 0.001;
 ba_init = 15;
 stp_init = 10;
-ar_ord = 20;
+ar_ord = 14;
 
 
 xl_dir = sprintf('%s/Excel Files',subjs_dir);

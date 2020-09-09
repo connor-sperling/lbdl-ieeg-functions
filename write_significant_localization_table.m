@@ -47,7 +47,7 @@ for l = 1:length(locks)
         end
         
         % organize table in alphabetical order of channels
-        [~, ord] = sort(subj_loc_org(:,2));
+        [~, ord] = sort(subj_loc_org(:,3));
         subj_loc_org = subj_loc_org(ord, :);
         
 
@@ -55,7 +55,7 @@ for l = 1:length(locks)
         if contains(xl_dir, 'San_Diego')
             region_code = cell(size(subj_loc_org,1),1);
             for k = 1:size(subj_loc_org,1)
-                kloc = strsplit(subj_loc_org{k,3},'/');
+                kloc = strsplit(subj_loc_org{k,4},'/');
                 kloc_d = kloc{1};
                 kloc_m = kloc{2};
                 region_code_d = char(key.abv(cellfun(@(x) contains(kloc_d,x), key.region)));
@@ -65,7 +65,7 @@ for l = 1:length(locks)
                 elseif contains(kloc_d, 'rh') || contains(kloc_d, 'Right') || contains(kloc_d, 'R-')
                     dhemi = 'R';
                 else
-                    tlab = subj_loc_org{k,2};
+                    tlab = subj_loc_org{k,3};
                     dhemi = tlab(1);
                 end
 
@@ -74,7 +74,7 @@ for l = 1:length(locks)
                 elseif contains(kloc_m, 'rh') || contains(kloc_m, 'Right') || contains(kloc_d, 'R-')
                     mhemi = 'R';
                 else
-                    tlab = subj_loc_org{k,2};
+                    tlab = subj_loc_org{k,3};
                     mhemi = tlab(1);
                 end
 

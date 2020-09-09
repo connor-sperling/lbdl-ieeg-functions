@@ -1,7 +1,7 @@
 
 clear
-xldir = '/Volumes/LBDL Extern/bdl-raw/iEEG_San_Diego/Materials/Verbgen stim/ratings';
-verbsin = readtable(sprintf('%s/results.xlsx', xldir));
+xldir = '/Volumes/LBDL Extern/bdl-raw/iEEG_San_Diego/Subjs/Excel Files/';
+verbsin = readtable(sprintf('%s/verbgen_pt_responses_entropy.xlsx', xldir));
 
 Entropy = zeros(size(verbsin,1),1);
 

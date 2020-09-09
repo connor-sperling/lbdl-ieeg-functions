@@ -1,7 +1,5 @@
 function segment_channels_per_event(EEG, TvD, pth, foc_nm)
 
-    
-   
     subj = strsplit(EEG.setname,'_');
     subj = subj{1};
     fs = EEG.srate;

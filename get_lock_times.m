@@ -1,14 +1,15 @@
-function T = get_lock_times(EEG, L)
+function T = get_lock_times(S)
 
-    if nargin == 2 && isempty(EEG) && (strcmp(L,'stim') || strcmp(L, 'resp'))
-        lock = L;
+    if ischar(S)
+        lock = S;
+        rtm = [];
         rtmi = [];
         evni = [];
     else
-        lock = EEG.lock;
-        rtm = [EEG.analysis.resp]';
-        rtmi = round(rtm./1000 *EEG.srate);
-        evni = [EEG.analysis.latency]';
+        lock = S.lock;
+        rtm = [S.analysis.resp]';
+        rtmi = round(rtm./1000 *S.srate);
+        evni = [S.analysis.latency]';
     end
 
     T = struct;

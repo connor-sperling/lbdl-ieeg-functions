@@ -1,13 +1,10 @@
+function aic_ar(location, subj, study, ref, lock, band, fs)
 
-close all
-clear
+iter = 100;
 
-subj = 'sd14';
-band = 'NONE';
-ref = 'bipolar';
-iter = 1000;
+dat_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs/%s/analysis/%s/%s/%s/condition/data/%s', location, subj, study, ref, lock, band);
 
-cd(sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_San_Diego/Subjs/%s/analysis/Stroop_CIC-CM/%s/stim/condition/data/%s', subj, ref, band))
+cd(dat_dir)
 files = dir('*.mat');
 files = {files.name};
 mean_file = sprintf('allChanPerEvn_%s_bipolar_mean.mat', subj);
@@ -16,7 +13,13 @@ files(cellfun(@(x) strcmp(x, mean_file), files)) = [];
 if strcmp(band,'NONE')
     band = 'RAW';
 end
-test_data = zeros(iter, 1+round(1024*.8));
+
+T = get_lock_times(lock);
+an_time = T.an_en - T.an_st + 1;
+an_st = (T.an_st-T.bl_st)*fs/1000; % convert analysis start time to samples
+an_en = (T.an_en-T.bl_st)*fs/1000; % convert analysis end time to samples
+
+test_data = zeros(iter, fs+1);
 Xe = zeros(1, iter);
 Xc = zeros(1, iter);
 n = 0;
@@ -111,17 +114,19 @@ end
 mAICc = mean(AICc,1);
 dmAICc = diff(mAICc);
 
-sdir = '~/Documents/research/thesis/aic_ar order/';
+% sdir = '~/Documents/research/thesis/aic_ar order/';
 figure
 histogram(arg_knee)
 ylabel('count')
 xlabel('Knee of AICc curve')
 title(sprintf('%s - %s - Distribution of AR order (%i iterations w/out rep)', subj, band, iter))
-saveas(gca, sprintf('%s/ar_ord_dist_%s_%s_%i.png', sdir, subj, band, iter));
+set(gcf, 'Units','pixels','Position',[750 918 560 420])
+% saveas(gca, sprintf('%s/ar_ord_dist_%s_%s_%i.png', sdir, subj, band, iter));
 
 figure
 scatter(1:maxN, mAICc)
 ylabel('AICc')
 xlabel('AR order')
 title(sprintf('%s - %s - Average AICc wrt AR order', subj, band))
-saveas(gca,  sprintf('%s/avg_aicc_curve_%s_%s_%i.png', sdir, subj, band, iter));
+set(gcf, 'Units','pixels','Position',[1350 918 560 420])
+% saveas(gca,  sprintf('%s/avg_aicc_curve_%s_%s_%i.png', sdir, subj, band, iter));
