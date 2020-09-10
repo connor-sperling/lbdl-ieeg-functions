@@ -41,6 +41,12 @@ function binary = user_yn(pmt, varargin)
         case 'artifact rem?'
             msg = '\nRemove artifacts?';
             
+        case 'keep event rejection?'
+            msg = '\nKeep event rejection?';
+            
+        case 'keep channel rejection?'
+            msg = '\nKeep channel rejection?';
+            
     end
         yn = '';
         while ~strcmp(yn, 'y') && ~strcmp(yn, 'yes') && ~strcmp(yn, 'n') && ~strcmp(yn, 'no')

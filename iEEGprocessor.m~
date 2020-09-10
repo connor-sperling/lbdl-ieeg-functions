@@ -318,24 +318,24 @@ if exist(old_file, 'file')
     disp('Channels:')
     disp(chnl_rej)
     ke = user_yn('keep event rejection?');
-    kc = user_yn('keep channel rejection?');
+    kc = input('keep channel rejection?');
     
     if ke
-        evn_msk = ~ismember(evn,evrej_new);
+        evn_msk = ~ismember(evn,evn_rej);
         an_evn_idc = evn_idc(evn_msk);
         an_evn = evn(evn_msk);
         an_rtm = rtm(evn_msk);
-        a = make_EEG(EEG, 'AnalysisEventIdx', an_evn_idc, 'AnalysisEventType', an_evn, 'AnalysisResponseTime', an_rtm, 'EventIndex', evn_idc, 'EventType', evn, 'ResponseTime', rtm, 'EventReject', evrej_new);
-        EEG = a;
+
+        EEG = make_EEG(EEG, 'AnalysisEventIdx', an_evn_idc, 'AnalysisEventType', an_evn, 'AnalysisResponseTime', an_rtm, 'EventIndex', evn_idc, 'EventType', evn, 'ResponseTime', rtm, 'EventReject', evn_rej);
+
     end
     
     if kc
-        crej_no = find(ismember(glab, chnl_rej)==1);
-        [gdat, glab, rdat, crej_lab] = remove_channels(gdat, glab, crej_no, [], {});
-        EEG = make_EEG(EEG, 'dat', gdat, 'labels', glab, 'RejectChans', crej_lab, 'RejectChansData', rdat);
+        crej_no = find(ismember(chnl_rej, glab)==1);
+        [gdat, glab, rdat, crej_lab] = remove_channels(gdat, glab, crej_no, rdat, crej_lab);
     end
     
-    
+    EEG = make_EEG(EEG, 'dat', gdat, 'labels', glab, 'RejectChans', crej_lab, 'RejectChansData', rdat, 'EventIndex', evn_idc, 'EventType', evn, 'ResponseTime', rtm, 'EventReject', evn_rej, 'saved', 'no');
     
 end
 
