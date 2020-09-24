@@ -25,7 +25,7 @@ p = YY(:)';
 
 %% optimization
 
-L = quadprog(1/2*(mat_obj'*mat_obj),ba/(N*M)*p*mat_obj,A2,b2,A1,b1);
+L = quadprog(1/2*(mat_obj'*mat_obj),ba/(N*M)*p*mat_obj,A2,b2,A1,b1,[],[],[],optimoptions('quadprog', 'Display','off'));
 %% convert from vector form to matrix form
 L = reshape(mat_obj*L,N,N);
 D = diag(diag(L));

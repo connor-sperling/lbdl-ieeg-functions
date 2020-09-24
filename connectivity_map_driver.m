@@ -10,7 +10,7 @@ clc
 
 % San Diego
 location = 'San_Diego';
-study = 'VerbGen_ENT';
+study = 'Stroop_CIC-CM';
 fs = 1024;
 atlas = 'Desikan_Killiany'; % For SD data
 xl_nm = 'stroop_loc';
@@ -82,3 +82,4 @@ end
 
 abr = true; % "annotate brain region"
 generate_connectivity_maps(subjs_dir, study, ref, locks, bands, atlas, abr)
+

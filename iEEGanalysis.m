@@ -178,8 +178,8 @@ for subjcell = all_subjs % loop through selected subjects
                         
                         
                     case 'Stroop_CIC-CM'
-                        segment_events_per_channel(EEG, {EEG.analysis.type}' , [EEG.analysis.latency]', [EEG.analysis.resp]', alldat_pth, 'ALL') 
-                        TvD = sig_freq_band(EEG, [EEG.analysis.resp]', sprintf('%s/ALL', lock_pth), 'ALL');
+                        segment_events_per_channel(EEG, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
                         segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
                         
                     case 'Stroop_CIC-NR'

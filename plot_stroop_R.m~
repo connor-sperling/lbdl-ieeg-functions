@@ -3,15 +3,16 @@ function plot_stroop_R(EEG, dat_files, study, cnum)
     if ispc
         subjs_dir = 'L:/iEEG_San_Diego/Subjs';
     elseif isunix
-        subjs_dir = '/Volumes/LBDL_Extern/bdl-raw/iEEG_San_Diego/Subjs';
+        subjs_dir = '/Volumes/LBDL Extern/bdl-raw/iEEG_San_Diego/Subjs';
     end
 
     sid = strsplit(EEG.setname, '_');
     subj = sid{1};  
     fs = EEG.srate;
-    lock = EEG.lock;
-    band = EEG.band;
+    lock = EEG.lock{end};
+    band = EEG.band{end};
     ref = EEG.ref;
+    rtm = [EEG.event.resp]';
     
     ap_pth = sprintf('%s/plots/%s/%s', subjs_dir, study, lock);
     if cnum == 1

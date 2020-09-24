@@ -10,6 +10,8 @@ function mean_cluster = plot_clusters(cdat, lock, band, fs, cnum)
             st_tm = -500;
             en_tm = 1600;
     end
+    
+    T = get_lock_times(lock);
 
     if strcmp(band, 'HFB')
         fc = 15;
@@ -43,11 +45,11 @@ function mean_cluster = plot_clusters(cdat, lock, band, fs, cnum)
             maxplot = maxdat;
         end
 
-        tsamp = floor((st_tm-begin_tm)*fs/1000)+1:floor((en_tm-begin_tm)*fs/1000)+1;
-        tmesh = st_tm:1000/fs:en_tm;
-        datd = dat(tsamp);
+%         tsamp = floor((st_tm-begin_tm)*fs/1000)+1:floor((en_tm-begin_tm)*fs/1000)+1;
+        tmesh = T.st:1000/fs:T.en;
+%         datd = dat(tsamp);
 
-        plot(tmesh, datd, 'color', c);
+        plot(tmesh, dat, 'color', c);
 
     end
 
@@ -61,10 +63,10 @@ function mean_cluster = plot_clusters(cdat, lock, band, fs, cnum)
     plot(tmesh, mean_cluster(tsamp), 'k', 'Linewidth', 1.5);
 
     plot([0 0] ,[minplot-20 maxplot+20], 'LineWidth', 1, 'Color', 'k');
-    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    plot([T.st T.en], [0 0],'k','LineWidth',1);
 
     title(sprintf('Cluster %i', cnum))
-    xlim([st_tm en_tm])
+    xlim([T.st T.en])
     ylim([minplot-10 maxplot+10])
     xlabel('Time (ms)');
     ylabel('Change from Baseline (%)');

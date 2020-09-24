@@ -6,18 +6,18 @@ clear
 close all
 
 % San Diego
-% subj = 'sd18';
-% study = 'Stroop_CIC-CM';
-% location = 'San_Diego';
-% fs = 1024;
-% xl_nm = 'stroop_loc_Desikan_Killiany_bipolar';
+subj = 'sd18';
+study = 'Stroop_CIC-CM';
+location = 'San_Diego';
+fs = 1024;
+xl_nm = 'stroop_loc_Desikan_Killiany_bipolar';
 
 % Marseille
-subj = 'pt20';
-study = 'DA_GEN';
-location = 'Marseille';
-fs = 1000;
-xl_nm = 'all_localization_6_9_20_29_bipolar';
+% subj = 'pt20';
+% study = 'DA_GEN';
+% location = 'Marseille';
+% fs = 1000;
+% xl_nm = 'all_localization_6_9_20_29_bipolar';
 
 lock = 'stim';
 band = 'LFP';
@@ -31,7 +31,7 @@ dpth = sprintf('%s/%s/analysis/%s/bipolar/%s/ALL/data/%s/',subjs_dir,subj,study,
 
 load(sprintf('%s/%s_mean_sig_data.mat',dpth,subj), 'elecs_dat', 'lab')
 
-T = get_lock_times([], lock);
+T = get_lock_times(lock);
 
 % Convert to samples
 an_st = round(abs(T.an_st-T.st)*fs/1000)+1;
@@ -51,8 +51,8 @@ paran(datr)
 ncomp = sum(latent > latent_mean);
 
 [coeff,score,latent] = pca(dat,'NumComponents', nc);
-[coeff_rot, T] = rotatefactors(coeff);
-score_rot = score*T;
+[coeff_rot, Tr] = rotatefactors(coeff);
+score_rot = score*Tr;
 
 d = pdist(coeff_rot, 'correlation');
 z = linkage(coeff_rot, 'complete', 'correlation');

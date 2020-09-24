@@ -4,12 +4,17 @@ function stroop_R_analysis(EEG, study, pth)
     evn_idc = [EEG.analysis.latency]';
     rtm = [EEG.analysis.resp]';
     
-    adat_pth = sprintf('%s/ALL/data/%s', pth, EEG.band{end});
-    fdat_pth = sprintf('%s/condition/data/%s', pth, EEG.band{end});
+    adat_pth = sprintf('%s/ALL/data/%s', pth, EEG.band);
+    fdat_pth = sprintf('%s/condition/data/%s', pth, EEG.band);
+    
+    segment_events_per_channel(EEG, adat_pth, 'ALL') 
+    TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', pth), 'ALL');
 
-    event_prep(EEG, evn_idc, rtm, adat_pth, 'ALL') 
-    TvD = sig_freq_band(EEG, rtm, sprintf('%s/ALL', pth), 'ALL');
-
+    if isempty(TvD)
+        fprintf('\nNo significant channels found\n');
+        return
+    end
+    
     % find significant channels, make stucture that only contains sig dat
     sig_chans = string(TvD(:,2));
     all_chans = string({EEG.chanlocs.labels}');
@@ -70,24 +75,32 @@ function stroop_R_analysis(EEG, study, pth)
             end
         end
         
-%         prompt('stroop evn prep', 4*(N-1)+1, 'Beg', 'c', cong, stp)
-        event_prep(ses_EEG, c_beg_idcs, c_beg_resp, fdat_pth, [clr spc 'c' 'Beg'])
+        ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', c_beg_idcs,...
+                                        'AnalysisEventType', c_beg,...
+                                        'AnalysisResponseTime', c_beg_resp);
+        segment_events_per_channel(ses_EEG, fdat_pth,  [clr spc 'c' 'Beg'])
         
-%         prompt('stroop evn prep', 4*(N-1)+2, 'End', 'c', cong, stp)
-        event_prep(ses_EEG, c_end_idcs, c_end_resp, fdat_pth, [clr spc 'c' 'End'])
         
-%         prompt('stroop evn prep', 4*(N-1)+3, 'Beg', 's', cong, stp)
-        event_prep(ses_EEG, s_beg_idcs, s_beg_resp, fdat_pth, [clr spc 's' 'Beg'])
+        ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', c_end_idcs,...
+                                        'AnalysisEventType', c_end,...
+                                        'AnalysisResponseTime', c_end_resp);
+        segment_events_per_channel(ses_EEG, fdat_pth, [clr spc 'c' 'End'])
         
-%         prompt('stroop evn prep', 4*(N-1)+4, 'End', 's', cong, stp)
-        event_prep(ses_EEG, s_end_idcs, s_end_resp, fdat_pth, [clr spc 's' 'End'])
+        
+        ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', s_beg_idcs,...
+                                        'AnalysisEventType', s_beg,...
+                                        'AnalysisResponseTime', s_beg_resp);
+        segment_events_per_channel(ses_EEG, fdat_pth, [clr spc 's' 'Beg'])
+        
+        
+        ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', s_end_idcs,...
+                                        'AnalysisEventType', s_end,...
+                                        'AnalysisResponseTime', s_end_resp);
+        segment_events_per_channel(ses_EEG, fdat_pth, [clr spc 's' 'End'])
         
     end
     
-    sig_chans = TvD(:,2);
-    subj = strsplit(EEG.setname, '_');
-    subj = subj{1};
-    
+    sig_chans = TvD(:,2);    
     cd(fdat_pth)
     prompt('stroop plot')
     for ii = 1:length(sig_chans)

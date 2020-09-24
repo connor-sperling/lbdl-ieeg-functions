@@ -2,7 +2,7 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
 
     evn_nm = erase(evn_nm,'.mat');
     N = size(A,1);
-    vis = 'on';
+    vis = 'off';
     h = figure('visible',vis);
 
     imagesc(A);
@@ -25,9 +25,12 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
         dy = (yen-yst)/N;
         x_pos = xst;
         y_pos = yen;
-        x_cushion = xst - dx;
-        y_cushion = yst - dy;
         e = 0.005;
+        ym = 0.0509; yb = 0.6567;
+        xm = -0.0598; xb = 0.4421;
+        x_cushion = 0.107;
+        y_cushion = .085;
+        
         k = 0;
         for j = 1:max(Ridx)
             sz_reg = sum(Ridx == j);
@@ -39,8 +42,8 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
             annotation('line', [x_cushion x_cushion], yline, 'linewidth', 2, 'color', 'k') % y-axis line
             annotation('line', [x_cushion x_cushion+.005], [yline(1) yline(1)],'linewidth', 2, 'color', 'k')
             annotation('line', [x_cushion x_cushion+.005], [yline(2) yline(2)], 'linewidth', 2, 'color', 'k') 
-            text(-1.8, mean([k sz_reg+1+k]), Ru(j), 'HorizontalAlignment','center','FontWeight','bold') % y-axis text
-            tx = text(mean([k sz_reg+1+k]), N+2.7, Ru(j),'HorizontalAlignment','center','FontWeight','bold'); % x-axis text
+            text(xm*N+xb, mean([k sz_reg+1+k]), Ru(j), 'HorizontalAlignment','center','FontWeight','bold') % y-axis text
+            tx = text(mean([k sz_reg+1+k]), ym*N+yb+N, Ru(j),'HorizontalAlignment','center','FontWeight','bold'); % x-axis text
             set(tx,'Rotation',50);
             x_pos = x_pos+sz_reg*dx;
             y_pos = y_pos-sz_reg*dy;
@@ -50,10 +53,14 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
     
     
     saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.png', pth, subj, ref, lock, band, evn_nm));
+    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.fig', pth, subj, ref, lock, band, evn_nm));
+    close
 
     figure('visible',vis)
     histogram(A(:), 30)
     title(sprintf('%s | %s = %d | q = %d',evn_nm,'\alpha/\beta',ba,ar_ord))
-    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_hist.png', pth, subj, ref, lock, band, evn_nm));
+
+    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_hist.png', pth, subj, ref, lock, band, evn_nm));    
+    close
     
 end

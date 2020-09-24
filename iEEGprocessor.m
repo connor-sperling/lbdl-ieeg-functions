@@ -294,7 +294,7 @@ end
 
 old_df_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs/%s/data', location, subj); 
 old_file = sprintf('%s/%s_%s_%s_monopolar_dat.mat', old_df_dir, subj, task, rsearch);
-if exist(old_file, 'file')
+if exist(old_file, 'file') && contains(fname, 'RAW')
     EEGtemp = EEG;
     load(old_file)
     EEGold = EEG;

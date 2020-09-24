@@ -66,6 +66,7 @@ if exist(stddir, 'dir') % check if study exists for patient
                 if size(dat) > 1 
                     S_end = ones(1,10);
                     k = 0;
+                    tic
                     while sparsity <= opt_sparsity - tol || sparsity >= opt_sparsity + tol
                         A = gl_ar(dat, ba, ar_ord);
 
@@ -96,6 +97,7 @@ if exist(stddir, 'dir') % check if study exists for patient
                             tol = tol + tol_stp;
                         end
                     end
+                    toc
                     ba = BA(end);
                     A = gl_ar(dat, ba, ar_ord);
                     plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, cmpth, loc);

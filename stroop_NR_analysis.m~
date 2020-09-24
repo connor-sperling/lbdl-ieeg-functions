@@ -11,8 +11,9 @@ function stroop_NR_analysis(EEG, study, pth)
     TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', pth), 'ALL');
     
     if isempty(TvD)
-        fprintf('\nNo significant channels found\n');
-        return
+        m = sprintf('\nNo significant channels found\n');
+        disp(m)
+        break
     end
     
     % find significant channels, make stucture that only contains sig dat

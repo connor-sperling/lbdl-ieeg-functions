@@ -9,29 +9,17 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     sid = strsplit(EEG.setname, '_');
     subj = sid{1};  
     fs = EEG.srate;
-    lock = EEG.lock{end};
-    band = EEG.band{end};
+    lock = EEG.lock;
+    band = EEG.band;
     ref = EEG.ref;
-    rtm = [EEG.event.resp]';
     
     ap_pth = sprintf('%s/plots/%s/%s', subjs_dir, study, lock);
     if cnum == 1
         my_mkdir(ap_pth, sprintf('%s_%s_*', subj, band))
     end
     
-    switch lock
-        case 'Response Locked'
-            begin_tm = -1250;
-            st_tm = -1250;
-            en_tm = 750;
-            second_mrk = -mean(rtm);
-        case 'Stimulus Locked'
-            begin_tm = -1000;
-            st_tm = -400;
-            en_tm = 1600;
-            second_mrk = mean(rtm);
-    end
-    
+   
+    T = get_lock_times(EEG);
     
     ch_lab = strsplit(dat_files{1}, '_');
     ch_lab = ch_lab{3};
@@ -89,10 +77,10 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     figure('visible', 'off')
     %figure
     set(gcf, 'Units','pixels','Position',[0 0 1920 1116])
-    if second_mrk > en_tm
-        second_mrk = en_tm;
-    elseif second_mrk < st_tm
-        second_mrk = st_tm;
+    if T.scnd_mrk > T.en
+        T.scnd_mrk = T.en;
+    elseif T.scnd_mrk < T.st
+        T.scnd_mrk = T.st;
     end
     
     c1 = [51 102 0]/255;
@@ -164,22 +152,22 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     glb_max = max([max_cb max_ce max_sb max_se]);
     glb_min = min([min_cb min_ce min_sb min_se]);
     
-    tsamp = floor((st_tm-begin_tm)*fs/1000)+1:floor((en_tm-begin_tm)*fs/1000)+1;
-    tmesh = st_tm:1000/fs:en_tm;
+    tsamp = floor((T.st-T.st)*fs/1000)+1:floor((T.en-T.st)*fs/1000)+1;
+    tmesh = T.st:1000/fs:T.en;
     
     subplot(2,2,1); hold on;
     X(:,1) = plot(tmesh, cCcB_dat(tsamp), 'color', c1, 'Linewidth', 2, 'DisplayName', 'cCc');
     X(:,2) = plot(tmesh, cIcB_dat(tsamp), 'color', c2, 'Linewidth', 2, 'DisplayName', 'cIc');
     X(:,3) = plot(tmesh, cCsB_dat(tsamp), 'color', c3, 'Linewidth', 2, 'DisplayName', 'cCs');
     X(:,4) = plot(tmesh, cIsB_dat(tsamp), 'color', c4, 'Linewidth', 2, 'DisplayName', 'cIs');
-    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    plot([T.st T.en], [0 0],'k','LineWidth',1);
 %     h = fill([tms fliplr(tms)],shadow,[200/255, 200/255, 200/255]);
 %     set(h,'EdgeColor',[200/255, 200/255, 200/255],'FaceAlpha',.7,'EdgeAlpha',.7);%set edge color
     plot([0 0], [glb_min glb_max], 'k', 'LineWidth', 1)
-    plot([second_mrk second_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
+    plot([T.scnd_mrk T.scnd_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
 %   Relative scaling (be sure to change ylim if you use this)
 %     plot([0 0], [min_cb max_cb], 'k', 'LineWidth', 1)
-%     plot([second_mrk second_mrk], [min_cb max_cb], '--', 'color', [.549, .549, .549])
+%     plot([T.scnd_mrk T.scnd_mrk], [min_cb max_cb], '--', 'color', [.549, .549, .549])
     title([subj ' ' ch_lab ' - ' lock ' - Color Stroop (first 20 stimuli)'])
     legend(X, 'Location', 'northwest')
     xlabel('Time (ms)')
@@ -193,14 +181,14 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     X(:,2) = plot(tmesh, cIcE_dat(tsamp), 'color', c2, 'Linewidth', 2, 'DisplayName', 'cIc');
     X(:,3) = plot(tmesh, cCsE_dat(tsamp), 'color', c3, 'Linewidth', 2, 'DisplayName', 'cCs');
     X(:,4) = plot(tmesh, cIsE_dat(tsamp), 'color', c4, 'Linewidth', 2, 'DisplayName', 'cIs');
-    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    plot([T.st T.en], [0 0],'k','LineWidth',1);
 %     h = fill([tms fliplr(tms)],shadow,[200/255, 200/255, 200/255]);
 %     set(h,'EdgeColor',[200/255, 200/255, 200/255],'FaceAlpha',.7,'EdgeAlpha',.7);%set edge color
     plot([0 0], [glb_min glb_max], 'k', 'LineWidth', 1)
-    plot([second_mrk second_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
+    plot([T.scnd_mrk T.scnd_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
 %   Relative scaling (be sure to change ylim if you use this)
 %     plot([0 0], [min_ce max_ce], 'k', 'LineWidth', 1)
-%     plot([second_mrk second_mrk], [min_ce max_ce], '--', 'color', [.549, .549, .549])
+%     plot([T.scnd_mrk T.scnd_mrk], [min_ce max_ce], '--', 'color', [.549, .549, .549])
     title([subj ' ' ch_lab ' - ' lock ' - Color Stroop (second 20 stimuli)'])
     legend(X, 'Location', 'northwest')
     xlabel('Time (ms)')
@@ -214,14 +202,14 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     X(:,2) = plot(tmesh, sIcB_dat(tsamp), 'color', c2, 'Linewidth', 2, 'DisplayName', 'sIc');
     X(:,3) = plot(tmesh, sCsB_dat(tsamp), 'color', c3, 'Linewidth', 2, 'DisplayName', 'sCs');
     X(:,4) = plot(tmesh, sIsB_dat(tsamp), 'color', c4, 'Linewidth', 2, 'DisplayName', 'sIs');
-    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    plot([T.st T.en], [0 0],'k','LineWidth',1);
 %     h = fill([tms fliplr(tms)],shadow,[200/255, 200/255, 200/255]);
 %     set(h,'EdgeColor',[200/255, 200/255, 200/255],'FaceAlpha',.7,'EdgeAlpha',.7);%set edge color
     plot([0 0], [glb_min glb_max], 'k', 'LineWidth', 1)
-    plot([second_mrk second_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
+    plot([T.scnd_mrk T.scnd_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
 %   Relative scaling (be sure to change ylim if you use this)
 %     plot([0 0], [min_sb max_sb], 'k', 'LineWidth', 1)
-%     plot([second_mrk second_mrk], [min_sb max_sb], '--', 'color', [.549, .549, .549])
+%     plot([T.scnd_mrk T.scnd_mrk], [min_sb max_sb], '--', 'color', [.549, .549, .549])
     title([subj ' ' ch_lab ' - ' lock ' - Spatial Stroop (first 20 stimuli)'])
     legend(X, 'Location', 'northwest')
     xlabel('Time (ms)')
@@ -235,14 +223,14 @@ function plot_stroop_NR(EEG, dat_files, study, cnum)
     X(:,2) = plot(tmesh, sIcE_dat(tsamp), 'color', c2, 'Linewidth', 2, 'DisplayName', 'sIc');
     X(:,3) = plot(tmesh, sCsE_dat(tsamp), 'color', c3, 'Linewidth', 2, 'DisplayName', 'sCs');
     X(:,4) = plot(tmesh, sIsE_dat(tsamp), 'color', c4, 'Linewidth', 2, 'DisplayName', 'sIs');
-    plot([st_tm en_tm], [0 0],'k','LineWidth',1);
+    plot([T.st T.en], [0 0],'k','LineWidth',1);
 %     h = fill([tms fliplr(tms)],shadow,[200/255, 200/255, 200/255]);
 %     set(h,'EdgeColor',[200/255, 200/255, 200/255],'FaceAlpha',.7,'EdgeAlpha',.7);%set edge color
     plot([0 0], [glb_min glb_max], 'k', 'LineWidth', 1)
-    plot([second_mrk second_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
+    plot([T.scnd_mrk T.scnd_mrk], [glb_min glb_max], '--', 'color', [.549, .549, .549])
 %   Relative scaling (be sure to change ylim if you use this)
 %     plot([0 0], [min_se max_se], 'k', 'LineWidth', 1)
-%     plot([second_mrk second_mrk], [min_se max_se], '--', 'color', [.549, .549, .549])
+%     plot([T.scnd_mrk T.scnd_mrk], [min_se max_se], '--', 'color', [.549, .549, .549])
     title([subj ' ' ch_lab ' - ' lock ' - Spatial Stroop (second 20 stimuli)'])
     legend(X, 'Location', 'northwest')
     xlabel('Time (ms)')
