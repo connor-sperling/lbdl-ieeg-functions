@@ -1,12 +1,27 @@
-function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth, loc)
+function plot_connectivity_map(A, subj, ref, lock, band, pth, loc, varargin)
 
-    evn_nm = erase(evn_nm,'.mat');
+    for v = 1:2:length(varargin)-1
+        if strcmp(varargin{v},'ar')
+            ar_ord = varargin{v+1};
+        elseif strcmp(varargin{v},'sparsity')
+            sparsity = varargin{v+1};
+        elseif strcmp(varargin{v},'event')
+            evn_nm = varargin{v+1};
+        elseif strcmp(varargin{v},'condition')
+            condition = varargin{v+1};
+        end
+    end
+    
     N = size(A,1);
     vis = 'off';
     h = figure('visible',vis);
 
     imagesc(A);
-    title(sprintf('%s | %s = %d | q = %d', evn_nm, '\alpha/\beta', ba, ar_ord))
+    if exist('condition', 'var') % For mean adjacenecy matrix
+        title(sprintf('%s %s %s %s', condition, subj, lock, band))
+    elseif exist('evn_nm', 'var') % for independent trials
+        title(sprintf('%s | %s = %0.1f%% | q = %d', evn_nm, 'Sparsity', sparsity*100, ar_ord))
+    end
     set(gca, 'XTick', 1:N, 'YTick', 1:N)
     set(h, 'Units','pixels','Position',[1450 425 1100 900])
     if ~isempty(loc)
@@ -52,15 +67,26 @@ function plot_connectivity_map(A, ba, ar_ord, subj, evn_nm, ref, lock, band, pth
     end
     
     
-    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.png', pth, subj, ref, lock, band, evn_nm));
-    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_map.fig', pth, subj, ref, lock, band, evn_nm));
+    
+    % Save connectivity map as png and fig
+    if exist('condition', 'var')
+        sname = sprintf('%s/%s_%s_%s_%s_%s', pth, subj, ref, lock, band, condition);
+    elseif exist('evn_nm', 'var')
+        sname = sprintf('%s/%s_%s_%s_%s_%s', pth, subj, ref, lock, band, evn_nm);
+    end
+    saveas(gca, sprintf('%s_map.png',sname))
+    saveas(gca, sprintf('%s_map.fig',sname))
     close
 
+    % Make and save weights histogram
     figure('visible',vis)
     histogram(A(:), 30)
-    title(sprintf('%s | %s = %d | q = %d',evn_nm,'\alpha/\beta',ba,ar_ord))
-
-    saveas(gca, sprintf('%s/%s_%s_%s_%s_%s_hist.png', pth, subj, ref, lock, band, evn_nm));    
+    if exist('condition', 'var') % For mean adjacenecy matrix
+        title(sprintf('%s %s %s %s', condition, subj, lock, band))
+    elseif exist('evn_nm', 'var') % for independent trials
+        title(sprintf('%s | %s = %0.1f%% | q = %d',evn_nm,'Sparsity',sparsity*100,ar_ord))
+    end
+    saveas(gca, sprintf('%s_hist.png', sname));    
     close
     
 end

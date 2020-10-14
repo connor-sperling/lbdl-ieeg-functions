@@ -182,6 +182,11 @@ for subjcell = all_subjs % loop through selected subjects
                         TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
                         segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
                         
+                    case 'Stroop_CIC-congruency'
+                        cmat = [0,   85,  196;...
+                                210, 180, 126]./255;
+                        stroop_task_congruency_analysis(EEG, studan, lock_pth, cmat) 
+                        
                     case 'Stroop_CIC-NR'
                         stroop_NR_analysis(EEG, studan, lock_pth)
 

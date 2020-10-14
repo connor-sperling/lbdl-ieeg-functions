@@ -10,7 +10,6 @@ function plot_conditions(EEG, dat_files, ch_lab, study, cmat)
     sid = strsplit(EEG.setname, '_');
     subj = sid{1};      
     fs = EEG.srate;
-    rtm = [EEG.event.resp]';
     band = EEG.band;
     
     ref = EEG.ref;

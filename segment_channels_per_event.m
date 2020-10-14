@@ -8,10 +8,10 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
     
     T = get_lock_times(EEG);
     
-    tot_t = T.en - T.st;
+    tot_t = T.an_en - T.an_st;
     
-    an_st = T.lidc + floor(T.st./1000 *fs); % Idx of lock + (-) analysis window st time
-    an_en = T.lidc + floor(T.en./1000 *fs); % Idx of lock +  analysis window end time
+    an_st = T.lidc + floor(T.an_st./1000 *fs) + 1; % Idx of lock + (-) analysis window st time
+    an_en = T.lidc + floor(T.an_en./1000 *fs); % Idx of lock +  analysis window end time
 
     lab = {EEG.chanlocs.labels}';
     dat = double([EEG.data]);
@@ -21,7 +21,7 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
     ismsk = ~ismember(lab,sig_lab);
     dat(ismsk,:) = [];
     
-    evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs)+1);
+    evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs));
     
     for kk = 1:size(dat,1)        
         if strcmp(band, 'HFB') 
@@ -45,9 +45,9 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
         else
             datT(kk,:) = dat(kk,:);
         end
-    
 
-        chnl_evnt = zeros(length(T.lidc), round(tot_t/1000 *fs)+1);
+
+        chnl_evnt = zeros(length(T.lidc), round(tot_t/1000 *fs));
 
         windatT = datT(kk,:);
         for jj = 1:length(T.lidc)
@@ -61,7 +61,7 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
     save(sprintf('%s/%s_%s_%s_mean.mat', pth, foc_nm, subj, EEG.ref), 'evn_seg', 'sig_lab');
 
     for kk = 1:length(T.lidc)  
-        evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs)+1);
+        evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs));
         for jj = 1:size(dat,1)
               windatT = datT(jj,:);
 

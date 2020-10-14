@@ -60,7 +60,7 @@ function mean_cluster = plot_clusters(cdat, lock, band, fs, cnum)
     end
         
     
-    plot(tmesh, mean_cluster(tsamp), 'k', 'Linewidth', 1.5);
+    plot(tmesh, mean_cluster, 'k', 'Linewidth', 1.5);
 
     plot([0 0] ,[minplot-20 maxplot+20], 'LineWidth', 1, 'Color', 'k');
     plot([T.st T.en], [0 0],'k','LineWidth',1);

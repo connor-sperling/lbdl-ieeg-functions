@@ -6,7 +6,7 @@ clear
 close all
 
 % San Diego
-subj = 'sd18';
+subj = 'sd09';
 study = 'Stroop_CIC-CM';
 location = 'San_Diego';
 fs = 1024;
@@ -38,8 +38,8 @@ an_st = round(abs(T.an_st-T.st)*fs/1000)+1;
 an_en = round(abs(T.an_en-T.st)*fs/1000);
 st_sam = round(T.st/1000*fs);
     
-dat = elecs_dat(an_st:end,:);
-rdim = 5;
+dat = elecs_dat(an_st:an_en,:);
+rdim = 15;
 nc = 3;
 
 R = squareform(pdist(dat', 'correlation'));
@@ -55,14 +55,16 @@ ncomp = sum(latent > latent_mean);
 score_rot = score*Tr;
 
 d = pdist(coeff_rot, 'correlation');
-z = linkage(coeff_rot, 'complete', 'correlation');
+% d = pdist(dat', @(Xi,Xj) dtwdist(Xi,Xj));
+% z = linkage(d, 'complete');
+z = linkage(coeff_rot, 'complete','correlation');
 I = inconsistent(z);
 cutoff = median(I(:,end));
-cluster_pos = cluster(z,'cutoff', cutoff, 'Criterion', 'distance');
+cluster_pos = cluster(z,'maxclust',10 ,'Criterion', 'distance');
 
 % b = biplot(coeff_rot(:,1:2), 'Scores', score_rot(:,1:2));
 
-h = dendrogram(z,0,'ColorThreshold',cutoff);
+h = dendrogram(z,0,'ColorThreshold','default');
 set(h,'LineWidth', 1.5)
 line([0 size(z,1)+2], [cutoff cutoff], 'LineStyle', '--', 'linewidth', 1.5)
 

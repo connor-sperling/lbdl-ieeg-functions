@@ -38,6 +38,8 @@ xl_dir = sprintf('%s/Excel Files', subjs_dir);
 stdsplt = strsplit(study, '_');
 task = stdsplt{1};
 
+abr = true; % "annotate brain region"
+
 %% Localization files
 
 xl_bip_nm = bipolar_reference_loc_data(xl_dir, xl_nm, atlas);
@@ -49,6 +51,11 @@ write_significant_localization_table(subjs_dir, xl_bip_nm, atlas, study, ref, lo
 %% Reorder data
 
 reorder_channel_by_time_data(subjs_dir, study, ref, locks, bands)
+
+
+%% Remove white-matter/unknown
+
+remove_white_matter_channels(subjs_dir, atlas, study, ref, locks, bands)
 
 %% Choose AR order for each data
 if contains(xl_dir, 'San_Diego')
@@ -80,6 +87,18 @@ end
 
 %% Generate Connectivity Maps
 
-abr = true; % "annotate brain region"
 generate_connectivity_maps(subjs_dir, study, ref, locks, bands, atlas, abr)
+
+%% Mean maps - ALL
+
+separation = 'ALL';
+conditions = {''};
+average_adjacency_matricies(subjs_dir, study, ref, atlas, abr, separation, conditions)
+
+
+%% Mean maps - condition
+
+separation = 'TaskCongruency';
+conditions = {'C','I'};
+average_adjacency_matricies(subjs_dir, study, ref, atlas, abr, separation, conditions)
 

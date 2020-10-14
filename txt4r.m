@@ -8,20 +8,10 @@ function txt4r(EEG, TvD, win_ms, subjs_dir, dat_pth, study)
     lock = EEG.lock;
     fs = EEG.srate;
     
-    switch lock
-        case 'resp'
-            t_st = -1250;
-            an_st_tm = -750;
-            t_en = 750;
-            
-        case 'stim'
-            t_st = -1000;
-            an_st_tm = 0;
-            t_en = 1000;
-    end
+    T = get_lock_times(EEG);
 
-    mat_st = an_st_tm - t_st;
-    mat_en = t_en - t_st;  
+    mat_st = T.an_st - T.st;
+    mat_en = T.en - T.st;  
     
     tot_t = mat_en - mat_st;
         

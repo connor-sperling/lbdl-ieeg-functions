@@ -5,7 +5,6 @@ location = 'San_Diego';
 subjs_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs', location);
 subjs = {'sd09','sd10','sd14','sd18','sd19','sd21'};
 % subjs = {'pt6', 'pt9', 'pt20', 'pt29'};
-
 study = 'Stroop_CIC-CM';
 % study = 'DA_GEN';
 ref = 'bipolar';
