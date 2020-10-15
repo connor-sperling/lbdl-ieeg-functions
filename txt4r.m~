@@ -73,8 +73,7 @@ function txt4r(EEG, TvD, win_ms, subjs_dir, dat_pth, study)
             load(sprintf('%s/%s_%s_%s_%s.mat', dat_pth, foc_nm, subj, lab, ref), 'chnl_evnt', 'evn');
             
             evn_splt = cellfun(@(x) strsplit(x,'-'), evn, 'UniformOutput', false);
-            evn_trial_nums = cellfun(@(x) str2double(x{1}), evn_splt);
-            evn_msk = ismember(patdata.trial_num, evn_trial_nums);
+            evn_msk = cellfun(@(x) str2double(x{1}), evn_splt);
             
             patdata_trim = patdata(evn_msk, :);
             
