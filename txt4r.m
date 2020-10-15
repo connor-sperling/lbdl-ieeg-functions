@@ -11,7 +11,7 @@ function txt4r(EEG, TvD, win_ms, subjs_dir, dat_pth, study)
     T = get_lock_times(EEG);
 
     mat_st = T.an_st - T.st;
-    mat_en = T.en - T.st;  
+    mat_en = T.an_en - T.st;  
     
     tot_t = mat_en - mat_st;
         
@@ -74,7 +74,8 @@ function txt4r(EEG, TvD, win_ms, subjs_dir, dat_pth, study)
             
             evn_splt = cellfun(@(x) strsplit(x,'-'), evn, 'UniformOutput', false);
             evn_trial_nums = cellfun(@(x) str2double(x{1}), evn_splt);
-            evn_msk = ismember(patdata.trial_num, evn_trial_nums);
+            pd_trial_nums = table2array(patdata(:,cellfun(@(x) strcmpi(x,'trial_num'), header)));
+            evn_msk = ismember(pd_trial_nums, evn_trial_nums);
             
             patdata_trim = patdata(evn_msk, :);
             
