@@ -122,8 +122,10 @@ for subjcell = all_subjs % loop through selected subjects
                 % exist. The latter is necessary so that data from a
                 % certain channel does not remain in the directory after
                 % analysis changes which then deems it not significant
-                my_mkdir(alldat_pth, '*.mat', allplt_pth, '*.png')
-                my_mkdir(condat_pth, '*.mat', conplt_pth, '*.png')
+                my_mkdir(alldat_pth, '*.mat')
+                my_mkdir(allplt_pth, '*.png')
+                my_mkdir(condat_pth, '*.mat')
+                my_mkdir(conplt_pth, '*.png')
                 my_mkdir(plt_dir, sprintf('%s_%s_*', subj, band))
                 my_mkdir(alltvd_pth, '*.mat') 
                 my_mkdir(contvd_pth, '*.mat')
@@ -139,12 +141,14 @@ for subjcell = all_subjs % loop through selected subjects
                         cmat = [119, 68, 0; 155, 118, 16; 171, 148, 57;...
                                 202, 181,70;213, 222, 92; 234, 243, 104];
                         naming_analysis(EEG, studan, lock_pth, cmat)
-
+                        
                     case 'Naming_HLD'
                         analyze_events_by_condition(EEG, 'Den', {'HD', 'LD'}, lock_pth, studan) 
 
                     case 'Naming_ERRAN'
-                        analyze_events_by_condition(EEG, 'ErrC', {'0', '1'}, lock_pth, studan) 
+                        cmat = [0,   85,  196;...
+                                210, 180, 126]./255;
+                        analyze_events_by_condition(EEG, 'ErrC', {'0-1', '1-0'}, lock_pth, studan, cmat) 
 
                     case 'Stroop_EA-error'
                         cmat = [0,   85,  196;...
@@ -178,11 +182,37 @@ for subjcell = all_subjs % loop through selected subjects
                         
                         
                     case 'Stroop_CIC-CM'
+                        filter_data = true;
+                        ztol = 0.001;
+                        segment_channels_per_event(EEG, {}, condat_pth, 'allChanPerEvn', filter_data)
+                        generate_connectivity_maps_iEa(EEG, subjs_dir, condat_pth, study, ztol)
+                        
                         segment_events_per_channel(EEG, alldat_pth, 'ALL') 
                         TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
-                        segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn')
+                        
+                        
+                    case 'Stroop_CIC-CM-surrogate'
+                        alt_study = 'Stroop_CIC-CM';
+                        alltvd_pth = sprintf('%s/%s/%s/%s/ALL/TvD/%s/ALL_%s_TvD.mat', an_dir, alt_study, ref, lock, band, band);
+                        load(alltvd_pth, 'TvD')
+                        filter_data = true;
+                        segment_channels_per_event_surrogate(EEG, TvD, condat_pth, filter_data)
+                            
+                        
+                    case 'Stroop_CIC-MISO'
+                        segment_events_per_channel(EEG, alldat_pth, 'ALL') 
+                        TvD = significant_electrode_zscore(EEG, sprintf('%s/ALL', lock_pth), 'ALL');
+                        
+                        filter_data = false;
+                        segment_channels_per_event(EEG, TvD, condat_pth, 'allChanPerEvn', filter_data)
+                        
                         
                     case 'Stroop_CIC-congruency'
+%                         cmat = [0,   85,  196;...
+%                                 166, 205, 255;...
+%                                 210, 180, 126;...
+%                                 124, 81,  8]./255;
+%                             
                         cmat = [0,   85,  196;...
                                 210, 180, 126]./255;
                         stroop_task_congruency_analysis(EEG, studan, lock_pth, cmat) 

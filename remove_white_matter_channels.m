@@ -23,15 +23,17 @@ function remove_white_matter_channels(subjs_dir, atlas, study, ref, locks, bands
                 dat_dir = sprintf('%s/%s/analysis/%s/%s/%s/condition/data/%s', subjs_dir, subj, study, ref, lock, band);
                 my_mkdir(dat_dir, '*_GRAY.mat')
                 cd(dat_dir)
-                dfiles = dir('*.mat');
-                dfiles = {dfiles.name}; % all stimuls event files
-                for ii = 1:length(dfiles)
-                    file = dfiles{ii};
-                    load(file, 'evn_seg')
-                    evn_seg(wm_msk, :) = [];
-                    file = erase(file, '.mat');
-                    save(sprintf('%s_GRAY.mat', file), 'evn_seg')
-                end
+                dfile = dir('*.mat');
+                dfile = {dfile.name}; % all stimuls event files
+                dfile(cellfun(@(x) strcmp(x(1), '.'), dfile)) = [];
+                file = dfile{1};
+                load(file, 'evn_seg', 'evn', 'sig_lab')
+
+                evn_seg(wm_msk,:,:) = [];
+                sig_lab(wm_msk) = [];
+                
+                file = erase(file, '.mat');
+                save(sprintf('%s_GRAY.mat', file), 'evn_seg', 'evn', 'sig_lab')
             end
             writetable(loc_gray, sprintf('%s/significant_GRAY_%s_%s_%s_%s_%s_localization.xlsx',xl_dir,study,ref,lock,band,atlas))
         end

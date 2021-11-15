@@ -1,4 +1,4 @@
-function segment_channels_per_event(EEG, TvD, pth, foc_nm)
+function segment_channels_per_event(EEG, TvD, pth, foc_nm, filter_data)
 
     subj = strsplit(EEG.setname,'_');
     subj = subj{1};
@@ -17,58 +17,32 @@ function segment_channels_per_event(EEG, TvD, pth, foc_nm)
     dat = double([EEG.data]);
     
     % trim non-significant data from data matrix
-    sig_lab = TvD(:,2);
-    ismsk = ~ismember(lab,sig_lab);
-    dat(ismsk,:) = [];
+    if strcmp(band, 'NONE') || isempty(TvD)
+        sig_lab = {EEG.chanlocs.labels}';
+    else
+        sig_lab = TvD(:,2);
+        ismsk = ~ismember(lab,sig_lab);
+        dat(ismsk,:) = [];
+    end
     
-    evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs));
-    
-    for kk = 1:size(dat,1)        
-        if strcmp(band, 'HFB') 
-            Wp = [70 150]/(fs/2);
-            Ws = [60 160]/(fs/2);
-            Rp = 3;
-            Rs = 40;
-            [n,Ws] = cheb2ord(Wp,Ws,Rp,Rs);
-            [b,a] = cheby2(n,Rs,Ws);
-            datT(kk,:) = filtfilt(b, a, dat(kk,:));
-%             dat_bp = bandpass(dat(kk,:), [70, 150], fs);
-%             datT(kk,:) = dat_bp;
-        elseif strcmp(band, 'LFP')
-            Wp = 30/(fs/2);
-            Ws = 45/(fs/2);
-            Rp = 3;
-            Rs = 40;
-            [n,~] = buttord(Wp,Ws,Rp,Rs);
-            [b,a] = butter(n, Wp, 'low');
-            datT(kk,:) = filtfilt(b,a,dat(kk,:));
+    for kk = 1:size(dat,1)
+        if filter_data  
+            [b,a] = get_filter(band, fs);
+            diT = filtfilt(b, a, dat(kk,:));
+            datT(kk,:) = diT - mean(diT);
         else
             datT(kk,:) = dat(kk,:);
         end
-
-
-        chnl_evnt = zeros(length(T.lidc), round(tot_t/1000 *fs));
-
-        windatT = datT(kk,:);
-        for jj = 1:length(T.lidc)
-              % Raw event segment
-              chnl_evnt(jj,:) = windatT(an_st(jj):an_en(jj));
-        end  
-        evn_seg(kk,:) = mean(chnl_evnt,1);
-        
     end
-    
-    save(sprintf('%s/%s_%s_%s_mean.mat', pth, foc_nm, subj, EEG.ref), 'evn_seg', 'sig_lab');
 
-    for kk = 1:length(T.lidc)  
-        evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs));
-        for jj = 1:size(dat,1)
-              windatT = datT(jj,:);
-
-              % Raw event segment
-              evn_seg(jj,:) = windatT(an_st(kk):an_en(kk));
+    evn_seg = zeros(size(dat,1), round(tot_t/1000 *fs), length(evn));
+    for jj = 1:length(evn)  
+        for kk = 1:size(dat,1)
+              windatT = datT(kk,:);
+              evn_seg(kk,:,jj) = windatT(an_st(jj):an_en(jj));
         end     
-
-        save(sprintf('%s/%s_%s_%s_%s.mat', pth, foc_nm, subj, EEG.ref, evn{kk}), 'evn_seg', 'sig_lab');
     end
+    save(sprintf('%s/%s_%s_%s.mat', pth, foc_nm, subj, EEG.ref), 'evn_seg', 'evn', 'sig_lab');
 end
+
+

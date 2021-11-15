@@ -1,10 +1,9 @@
-function [stp, tol] = init_stepsize(dat, ba, ar_ord, S)
+function [stp, tol] = init_stepsize(dat, ba, ar_ord, ztol, S)
 
     % parameters
     opt_sparsity = 0.6;
     tol = 0.01;
     tol_stp = 0.01;
-    ztol = 0.001;
     stp = 1000;
 
     sparsity = 0;

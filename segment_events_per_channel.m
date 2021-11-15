@@ -31,27 +31,11 @@ function segment_events_per_channel(EEG, pth, foc_nm)
 
     for kk = 1:size(dat,1)        
         % isolate 'band' frequencies and recover the envelope of the signal
-        if strcmp(band, 'HFB') 
-            Wp = [70 150]/(fs/2); % passband
-            Ws = [60 160]/(fs/2); % stopband
-            Rp = 3; % passband ripple
-            Rs = 40; % stopband ripple
-            [n,Ws] = cheb2ord(Wp,Ws,Rp,Rs); % find the order of the filter
-            [b,a] = cheby2(n,Rs,Ws); % get coeffs for chebyshev filter
+        if strcmp(band, 'HFB') || strcmp(band, 'LFP')
+            [b,a] = get_filter(band, fs); % get coeffs for chebyshev filter
             datT = filtfilt(b, a, double(dat(kk,:))); % zero phase-dist filter
+            datT = datT - mean(datT);
             datT_evlp = abs(hilbert(datT)); % analytical amplitude of signal
-%             dat_bp = bandpass(dat(kk,:), [70, 150], fs); % Filtered data
-%             datT = abs(hilbert(dat_bp)); % Envelope of HFB signal
-        elseif strcmp(band, 'LFP')
-            Wp = 30/(fs/2);
-            Ws = 45/(fs/2);
-            Rp = 3;
-            Rs = 40;
-            [n,~] = buttord(Wp,Ws,Rp,Rs);
-            [b,a] = butter(n, Wp, 'low');
-%             [b,a] = butter(4, [0.1 30]/(fs/2), 'bandpass');
-            datT = filtfilt(b, a, double(dat(kk,:)));
-            datT_evlp = abs(hilbert(datT)); % Envelope of LFP signal
         else
             datT = dat(kk,:); % Envelope of entire signal
             datT_evlp = abs(hilbert(datT));

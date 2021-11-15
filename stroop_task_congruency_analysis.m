@@ -1,5 +1,8 @@
 function stroop_task_congruency_analysis(EEG, study, pth, cmat) 
-    
+
+% Initiates significance testing and splits stroop events based on two
+% conditions: Congruent in task (Color or Spatial) and Incongruent in task
+% 
     evn = {EEG.analysis.type}';
     evn_idc = [EEG.analysis.latency]';
     rtm = [EEG.analysis.resp]';
@@ -33,37 +36,81 @@ function stroop_task_congruency_analysis(EEG, study, pth, cmat)
     
     color_idx = 3;
     space_idx = 4;
-    conditions = {'C', 'I'};
+    
+%     conditions = {'C', 'I'};
+    conditions = {'Color', 'Space'};
     for n = 1:length(conditions)
         cond = conditions{n};
-        cond_evns = {};
-        cond_evn_idcs = [];
-        cond_resp = [];
+        c_cond_evns = {}; s_cond_evns = {};
+        c_cond_evn_idcs = []; s_cond_evn_idcs = [];
+        c_cond_resp = []; s_cond_resp = [];
         
-        for ii = 1:max_block
-            blk_msk = cellfun(@(x) str2double(x(blk_idx)) == ii, evn_split);
-            block_evns = evn(blk_msk);
-            block_idcs = evn_idc(blk_msk);
-            block_resp = rtm(blk_msk);
-            
-            block_evn_split = cellfun(@(x) strsplit(x, '-'), block_evns, 'uni', 0);  
-            if mod(ii,2)   
-                stroop_idx = color_idx;
-            else
-                stroop_idx = space_idx;
-            end
-            msk = cellfun(@(x) strcmp(x{stroop_idx}, cond), block_evn_split);
-            cond_evns = [cond_evns; block_evns(msk)];
-            cond_evn_idcs = [cond_evn_idcs; block_idcs(msk)];
-            cond_resp = [cond_resp; block_resp(msk)];
-        end   
+        % Splitting events by task AND congruency
+%         for ii = 1:max_block
+%             blk_msk = cellfun(@(x) str2double(x(blk_idx)) == ii, evn_split);
+%             block_evns = evn(blk_msk);
+%             block_idcs = evn_idc(blk_msk);
+%             block_resp = rtm(blk_msk);
+%             
+%             block_evn_split = cellfun(@(x) strsplit(x, '-'), block_evns, 'uni', 0);  
+%             if mod(ii,2)   
+%                 msk = cellfun(@(x) strcmp(x{color_idx}, cond), block_evn_split);
+%                 c_cond_evns = [c_cond_evns; block_evns(msk)];
+%                 c_cond_evn_idcs = [c_cond_evn_idcs; block_idcs(msk)];
+%                 c_cond_resp = [c_cond_resp; block_resp(msk)];
+%             else
+%                 msk = cellfun(@(x) strcmp(x{space_idx}, cond), block_evn_split);
+%                 s_cond_evns = [s_cond_evns; block_evns(msk)];
+%                 s_cond_evn_idcs = [s_cond_evn_idcs; block_idcs(msk)];
+%                 s_cond_resp = [s_cond_resp; block_resp(msk)];
+%             end
+%             
+%         end   
+%         ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', c_cond_evn_idcs,...
+%                                         'AnalysisEventType', c_cond_evns,...
+%                                         'AnalysisResponseTime', c_cond_resp);
+% %         segment_events_per_channel(ses_EEG, fdat_pth, sprintf('%s-color', cond))
+%         segment_events_per_channel(ses_EEG, fdat_pth, cond)
+%         
+%         ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', s_cond_evn_idcs,...
+%                                         'AnalysisEventType', s_cond_evns,...
+%                                         'AnalysisResponseTime', s_cond_resp);
+% %         segment_events_per_channel(ses_EEG, fdat_pth, sprintf('%s-space', cond))
+%         segment_events_per_channel(ses_EEG, fdat_pth, cond)
+%         
+%     end
+        
+    % Splitting events by task
+    for ii = 1:max_block
+        blk_msk = cellfun(@(x) str2double(x(blk_idx)) == ii, evn_split);
+        block_evns = evn(blk_msk);
+        block_idcs = evn_idc(blk_msk);
+        block_resp = rtm(blk_msk);
 
-        ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', cond_evn_idcs,...
-                                        'AnalysisEventType', cond_evns,...
-                                        'AnalysisResponseTime', cond_resp);
-        segment_events_per_channel(ses_EEG, fdat_pth, sprintf('%s-task', cond))
+        if mod(ii,2)   
+            c_cond_evns = [c_cond_evns; block_evns];
+            c_cond_evn_idcs = [c_cond_evn_idcs; block_idcs];
+            c_cond_resp = [c_cond_resp; block_resp];
+        else
+            s_cond_evns = [s_cond_evns; block_evns];
+            s_cond_evn_idcs = [s_cond_evn_idcs; block_idcs];
+            s_cond_resp = [s_cond_resp; block_resp];
+        end
+
+    end   
+
+    ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', c_cond_evn_idcs,...
+                                    'AnalysisEventType', c_cond_evns,...
+                                    'AnalysisResponseTime', c_cond_resp);
+%         segment_events_per_channel(ses_EEG, fdat_pth, sprintf('%s-color', cond))
+    segment_events_per_channel(ses_EEG, fdat_pth, 'Color')
+
+    ses_EEG = make_EEG(ses_EEG, 'AnalysisEventIdx', s_cond_evn_idcs,...
+                                    'AnalysisEventType', s_cond_evns,...
+                                    'AnalysisResponseTime', s_cond_resp);
+%         segment_events_per_channel(ses_EEG, fdat_pth, sprintf('%s-space', cond))
+    segment_events_per_channel(ses_EEG, fdat_pth, 'Space')
         
-    end
     
     sig_lab = TvD(:,2);
     cd(fdat_pth)

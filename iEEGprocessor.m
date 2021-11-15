@@ -27,7 +27,7 @@
 warning('off')
 close all
 clear
-clc
+% clc
 
 % Two sources of iEEG data (SD, Marseille)
 location = prompt('location');

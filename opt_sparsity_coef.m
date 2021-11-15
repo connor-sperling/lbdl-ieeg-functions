@@ -1,11 +1,10 @@
-function [S, BA] = opt_sparsity_coef(dat, ba, ar_ord, stp, tol, S, BA)
+function [S, BA] = opt_sparsity_coef(dat, ba, ar_ord, ztol, stp, tol, S, BA)
     
     % parameters
     opt_sparsity = 0.6;
-    ztol = 0.001;
     sparsity = 0;
     
-    tol_stp = 0.01;
+    tol_stp = 0.001;
     k = 0;
     
     while sparsity <= opt_sparsity - tol || sparsity >= opt_sparsity + tol
