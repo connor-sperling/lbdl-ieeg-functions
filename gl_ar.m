@@ -12,10 +12,11 @@ end
 
 [N,M] = size(X);
 
-Y = zeros(N,q);
-for k=1:N
-    Y(k,:) = getpvec(ar(X(k,:),q,'ls'));
-end
+Y = X;
+% Y = zeros(N,q);
+% for k=1:N
+%     Y(k,:) = getpvec(ar(X(k,:),q,'ls'));
+% end
 
 
 %% Laplacian constraints

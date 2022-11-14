@@ -19,7 +19,7 @@ function plot_conditions(EEG, dat_files, ch_lab, study, cmat)
     
     T = get_lock_times(EEG);
     
-    figure('visible', 'off')
+    figure('visible', 'on')
     set(gcf, 'Units','pixels','Position',[100 100 800 600])
     hold on
     

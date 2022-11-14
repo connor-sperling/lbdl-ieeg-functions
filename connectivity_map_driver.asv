@@ -1,0 +1,183 @@
+
+clear
+close all
+clc
+
+% Processing stream for grouping electrodes by brain region and/or
+% clustering by data signiture in order to create connectivity maps.
+
+%% Initialize variables
+
+
+location = 'San_Diego';       % SD or Marseille
+study = 'Stroop_CIC-CM';      % For now Stroop_CIC-CM are the only AR files that are set up for connectivity maps
+fs = 1024;                    % Sampling rate, as always
+atlas = 'Desikan_Killiany';   % For SD data - the atlas that was used for localization
+xl_nm = 'stroop_loc';         % excel file that contains all of the localization for all of the sd stroop patients
+ref = 'bipolar';              % always keep bipolar
+bands = {'LFP', 'HFB'};  
+locks = {'stim','resp'};
+abr = true;                   % "annotate brain region" - directive to mark up connectivity maps with brain regions and red hemisphere lines
+ztol = 0.001;                 % threshold for what is considered 0
+dtype = 'data';               % Data type - either 'data' or 'surrogate'.
+
+
+% input directory
+if ispc
+    addpath('L:/Functions/');
+    subjs_dir = sprintf('L:/iEEG_%s/Subjs/', location);
+elseif isunix
+    addpath('/Volumes/LBDL_Extern/bdl-raw/Functions');
+    subjs_dir = sprintf('/Volumes/LBDL_Extern/bdl-raw/iEEG_%s/Subjs', location);
+end
+
+% output directory
+if strcmp(study, 'Stroop_CIC-CM')
+    direc_dir = sprintf('%s/thesis/undirected_connectivity',subjs_dir);    
+else
+    direc_dir = sprintf('%s/thesis/directed_connectivity/impulse_estimation',subjs_dir);
+end
+
+xl_dir = sprintf('%s/Excel Files', subjs_dir); % set path to excel directoy (in subjs folder)
+stdsplt = strsplit(study, '_');
+task = stdsplt{1}; % get task name (Stroop) from study name
+
+
+
+%% Bipolar reference location data
+
+% "bipolar references" the electrode localization
+% e.g. A1 in STG, A2 in MTG --> A02-01 in MTG-STG
+xl_bip_nm = bipolar_reference_loc_data(xl_dir, xl_nm, atlas);
+
+%% Make significant location data
+
+% Gets all of the significant (determined by iEEG_analysis) electrode
+% localizations for all subjects and puts them in a separate excel file.
+% Organizes the localizations by region
+write_significant_localization_table(subjs_dir, xl_bip_nm, atlas, study, ref, locks, bands)
+
+% orders the data to correspond to the order in the "significant
+% localization table" that was just made in the previous function
+reorder_channel_by_time_data(subjs_dir, study, ref, locks, bands)
+
+% Removes electrodes and localizations if their region is WM-WM or
+% WM-undefined
+remove_white_matter_channels(subjs_dir, atlas, study, ref, locks, bands)
+
+%% Choose AR order for each data 
+
+% currently unused as AR order 14 seems to be the best option for all.
+% changing this value could be explored
+
+% if contains(xl_dir, 'San_Diego')
+%     subjs = dir(sprintf('%s/sd*', subjs_dir));
+% else
+%     subjs = dir(sprintf('%s/pt*', subjs_dir));
+% end
+% subjs = {subjs.name};
+% 
+% sARo = [];
+% for p = 1:length(subjs) % loop thru patients
+%     subj = subjs{p};
+%     stddir = sprintf('%s/%s/analysis/%s',subjs_dir,subj,study);
+%     ARo = [];
+%     if exist(stddir, 'dir')
+%     for l = 1:length(locks)
+%         for b = 1:length(bands)
+%             aic_ar(location, subj, study, ref, locks{l}, bands{b}, fs)
+%             aro_m = sprintf('\nChoose AR order for %s, %s, %s, %s: ', subj, ref, locks{l}, bands{b});
+%             aro = input(aro_m);
+%             ARo = [ARo aro];
+%             close all
+%         end
+%     end
+%     sARo = [sARo; ARo];
+%     end
+% end
+
+
+%% Generate Undirected Connectivity Maps
+
+% BE SURE TO TAKE OUT THE 'mean' FROM 'segment_channels_per_event' FILES BEFORE RUNNING THESE
+
+if strcmp(study, 'Stroop_CIC-CM')
+    %%% UNDIRECTED CONNECTIVITY %%%
+    generate_connectivity_maps(subjs_dir, study, ref, locks, bands, ztol, atlas, abr)
+    
+elseif strcmp(study, 'Stroop_CIC-MISO')
+    %%%  DIRECTED CONNECTIVITY  %%%
+    imp_est_per_channel_event(subjs_dir, study, ref, locks, bands, fs, location, atlas, abr, ztol)
+    direc_dir = sprintf('%s/thesis/undirected_connectivity',subjs_dir);
+end
+
+
+%% Generate Surrogate Connectivity Maps
+
+% Generating surrogate maps from break data
+generate_surrogate_connectivity_maps_break(subjs_dir, xl_dir, study, ref, locks, bands, ztol, atlas, fs)
+
+%% Binarize Maps
+
+% Binarizes the connectivity maps. Works for data maps or surrogate maps,
+% depending on what 'dtype' is
+binarize_adjacency_matricies(direc_dir, dtype, study, ztol, ref)
+
+%% Mean maps - ALL
+
+separation = 'ALL'; % Separation name means what events are included in the map
+conditions = {''}; % average_adjaceny_matricies requires conditions (for condition section) but none needed for ALL
+binarize = true; % works with the binarized maps if true, with the regular connectivity maps if false
+average_adjacency_matricies(direc_dir, subjs_dir, dtype, xl_dir, study, ref, atlas, abr, separation, conditions, ztol, binarize)
+
+
+%% Mean maps - condition
+% 
+separation = 'SubTask'; % The two 'sub tasks' of the Stroop task are Color Stroop an Spatial Stroop
+conditions = {'Color','Space'}; % Color and Space are the conditions
+% separation = 'SubTaskCongruency'; % Separates events based on the congruency within the subtasks
+% conditions = {'C-space','I-space'}; % currently only looking into spatial stroop
+binarize = true;
+average_adjacency_matricies(direc_dir, subjs_dir, dtype, xl_dir, study, ref, atlas, abr, separation, conditions, ztol, binarize)
+
+%% Sort/Plot
+
+% I have not used this, keeping it here just in case
+
+separation = 'SubTaskCongruency';
+poo = true;
+adj_type = sprintf('Average-%s', separation);
+if poo
+    adj_type = sprintf('%s-PoO', adj_type);
+end
+conditions = {'Color','Space'};
+plt_study = 'Stroop_CIC-congruency';
+plt_colors = [0,204,102;186,134,209]./255;
+
+sort_connections(direc_dir, xl_dir, dtype, adj_type, conditions, study, ztol, plt_study, atlas)
+% plot_connected_electrodes(subjs_dir, direc_dir, study, plt_study, adj_type, fs, ref, plt_colors)
+
+%% Network verification
+
+ground_dir = sprintf('%s/thesis/undirected_connectivity/surrogate',subjs_dir); % ground_dir refers to the surrogate maps
+dat_dir = sprintf('%s/thesis/undirected_connectivity/data',subjs_dir); % dat_dir for the 'data' maps
+condition_nm = 'Average-ALL-OP'; 
+op = true;
+network_verification2(direc_dir, xl_dir, study, ref, atlas, abr, condition_nm, ztol, op)
+% all_op(direc_dir, xl_dir, study, ref, atlas, abr, condition_nm, ztol, op)
+% network_verification(ground_dir, dat_dir, study)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -27,10 +27,21 @@ for l = 1:length(locks)
         % get significant channels
         lock_pth = sprintf('%s/%s/analysis/%s/%s/%s', subjs_dir, subj, study, ref, lock);
         tvdf = sprintf('%s/ALL/TvD/%s/ALL_%s_TvD.mat', lock_pth, band, band);
-        load(tvdf)
+        load(tvdf, 'TvD')
         lab = TvD(:,2);
         
+        % Patch for sd14. The RHB shaft was not localized by Burke but it
+        % shows up in the data and it is found significant. The code below
+        % removes it but this is a temporary fix as it should be included
+        % once it is localized.
+        if strcmp(subj, 'sd14') 
+            lab(cellfun(@(x) contains(x, 'RHB'), lab)) = [];
+        end
+        
         % filter out insignificant channels
+        if length(lab) ~= sum(ismember(loc_subj.SEEGChannel, lab))
+            d=1;
+        end
         sig_loc_subj = loc_subj(ismember(loc_subj.SEEGChannel, lab),:);
         sig_loc = [sig_loc; sig_loc_subj]; % store list
         
@@ -109,6 +120,7 @@ for l = 1:length(locks)
             subj_hem_reg = region_code(hmsk);
             subj_hem_bip_reg = bip_region(hmsk);
             loc_lab_hem = loc_lab(hmsk);
+            contacts = subj_loc_org(hmsk,3);
             Dreg = {};
             Mreg = {};
             ord_position = zeros(sum(hmsk),1);
@@ -122,15 +134,19 @@ for l = 1:length(locks)
                     stop = 1;
                 end
                 midx = find(cellfun(@(x) strcmp(x,mreg), key.abv)==1, 1);
-                if contains(mreg, 'WM') && ~contains(dreg, 'WM') || strcmp(mreg, 'U') && ~strcmp(dreg, 'U') || contains(mreg, 'blanc') && ~contains(dreg, 'blanc') || contains(mreg, 'out') && ~contains(dreg, 'out')
-                    ord_position(m) = didx;
-                    R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' dreg]};
-                elseif isempty(mreg) && ~isempty(dreg)
-                    ord_position(m) = didx;
-                    R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' dreg]};
-                else
-                    ord_position(m) = midx;
-                    R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' mreg]};
+                try
+                    if contains(mreg, 'WM') && ~contains(dreg, 'WM') || strcmp(mreg, 'U') && ~strcmp(dreg, 'U') || contains(mreg, 'blanc') && ~contains(dreg, 'blanc') || contains(mreg, 'out') && ~contains(dreg, 'out')
+                        ord_position(m) = didx;
+                        R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' dreg]};
+                    elseif isempty(mreg) && ~isempty(dreg)
+                        ord_position(m) = didx;
+                        R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' dreg]};
+                    else
+                        ord_position(m) = midx;
+                        R((h-1)*sum(hidx == h-1)+m) = {[char(single_hemi) '-' mreg]};
+                    end
+                catch
+                    error('Failed on %s, %s, %s', subj, subj_hem_bip_reg{m}, contacts{m});
                 end
 
                 % if distal region matches with previous defined region.
